@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entry History - Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1>Entry History</h1>
+        </div>
+
+        <nav>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="cctv-feed.html">CCTV Feed</a>
+            <a href="security-threats.html">Security Threats</a>
+            <a href="../index.html">Logout</a>
+        </nav>
+
+        <div class="section">
+            <h2>Filter</h2>
+            <label for="filter-date">Date:</label>
+            <input type="text" id="filter-date" name="filter-date">
+
+            <label for="filter-id">Student / Staff ID:</label>
+            <input type="text" id="filter-id" name="filter-id">
+
+            <button>Search</button>
+        </div>
+
+        <div class="section">
+            <h2>Recent Entries</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>ID</th>
+                        <th>Gate</th>
+                        <th>Timestamp</th>
+                        <th>Verification</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>[ Name ]</td>
+                        <td>[ ID ]</td>
+                        <td>[ Gate ]</td>
+                        <td>[ Timestamp ]</td>
+                        <td>[ Pass / Fail ]</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>[ Name ]</td>
+                        <td>[ ID ]</td>
+                        <td>[ Gate ]</td>
+                        <td>[ Timestamp ]</td>
+                        <td>[ Pass / Fail ]</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>[ Name ]</td>
+                        <td>[ ID ]</td>
+                        <td>[ Gate ]</td>
+                        <td>[ Timestamp ]</td>
+                        <td>[ Pass / Fail ]</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="page-footer">
+            <p>Campus Security System &copy; 2026 — Admin Panel</p>
+        </div>
+    </div>
+
+</body>
+</html>
