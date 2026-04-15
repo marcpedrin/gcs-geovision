@@ -1,0 +1,2573 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entry History – Campus Management Portal</title>
+    <meta name="description"
+        content="Campus Management Portal Entry History Dashboard — Real-time tracking of campus entries, exits, and security events.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+        :root {
+            /* Core Palette */
+            --clr-primary: #16a34a;
+            --clr-primary-light: #22c55e;
+            --clr-primary-dark: #15803d;
+            --clr-primary-ghost: rgba(22, 163, 74, 0.08);
+            --clr-primary-ghost-hover: rgba(22, 163, 74, 0.15);
+
+            --clr-accent: #0ea5e9;
+            --clr-danger: #ef4444;
+            --clr-danger-ghost: rgba(239, 68, 68, 0.1);
+            --clr-warning: #f59e0b;
+            --clr-warning-ghost: rgba(245, 158, 11, 0.1);
+            --clr-success: #10b981;
+            --clr-success-ghost: rgba(16, 185, 129, 0.1);
+
+            /* Surfaces */
+            --bg-body: #f0fdf4;
+            --bg-sidebar: #052e16;
+            --bg-card: #ffffff;
+            --bg-panel: #ffffff;
+            --bg-table-row-hover: #f0fdf4;
+            --bg-table-row-selected: #dcfce7;
+            --bg-input: #f9fafb;
+            --bg-badge: #f1f5f9;
+
+            /* Text */
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #94a3b8;
+            --text-inverse: #ffffff;
+            --text-sidebar: #bbf7d0;
+            --text-sidebar-active: #ffffff;
+
+            /* Borders */
+            --border-light: #e2e8f0;
+            --border-focus: #16a34a;
+
+            /* Shadows */
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.08);
+            --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.1);
+            --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+            --shadow-card-hover: 0 10px 25px rgba(0, 0, 0, 0.08);
+
+            /* Layout */
+            --sidebar-width: 260px;
+            --panel-width: 340px;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+
+            /* Transitions */
+            --transition-fast: 150ms ease;
+            --transition-normal: 250ms ease;
+            --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ---- Dark Mode ---- */
+        [data-theme="dark"] {
+            --bg-body: #0c1a12;
+            --bg-sidebar: #071a0e;
+            --bg-card: #132a1c;
+            --bg-panel: #132a1c;
+            --bg-table-row-hover: #1a3a25;
+            --bg-table-row-selected: #1e4d2b;
+            --bg-input: #1a3a25;
+            --bg-badge: #1a3a25;
+
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-tertiary: #64748b;
+
+            --border-light: #1e3a28;
+
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.35);
+            --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2);
+            --shadow-card-hover: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+
+        /* ============================================================
+   RESET & BASE
+   ============================================================ */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 14px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: background var(--transition-slow), color var(--transition-slow);
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            background: none;
+        }
+
+        input,
+        select {
+            font-family: inherit;
+            outline: none;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+        }
+
+
+        /* ============================================================
+   APP SHELL — 3-COLUMN LAYOUT
+   ============================================================ */
+        #app-shell {
+            display: flex;
+            min-height: 100vh;
+        }
+
+
+        /* ============================================================
+   LEFT SIDEBAR
+   ============================================================ */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            color: var(--text-sidebar);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+            transition: transform var(--transition-slow);
+        }
+
+        .sidebar-header {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--clr-primary-light), var(--clr-primary));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo-text {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.3;
+        }
+
+        .sidebar-logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--text-sidebar);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Profile Card */
+        .sidebar-profile {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, #34d399, #059669);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .sidebar-profile-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar-profile-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-profile-role {
+            font-size: 11px;
+            color: var(--text-sidebar);
+        }
+
+        .sidebar-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+            flex-shrink: 0;
+        }
+
+        /* Nav Menu */
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px 10px;
+            overflow-y: auto;
+        }
+
+        .sidebar-nav-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: rgba(187, 247, 208, 0.5);
+            padding: 8px 14px 6px;
+        }
+
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-sidebar);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            margin-bottom: 2px;
+            position: relative;
+        }
+
+        .sidebar-nav-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+
+        .sidebar-nav-item.active {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.15));
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .sidebar-nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 6px;
+            bottom: 6px;
+            width: 3px;
+            background: var(--clr-primary-light);
+            border-radius: 0 3px 3px 0;
+        }
+
+        .sidebar-nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-nav-badge {
+            margin-left: auto;
+            background: var(--clr-danger);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: var(--radius-full);
+            line-height: 1.4;
+        }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-footer-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            color: var(--text-sidebar);
+            transition: all var(--transition-fast);
+        }
+
+        .sidebar-footer-btn:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+
+
+        /* ============================================================
+   MAIN CONTENT AREA
+   ============================================================ */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            margin-right: var(--panel-width);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin var(--transition-slow);
+        }
+
+        /* Top Bar */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-light);
+            padding: 12px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+            transition: background var(--transition-slow);
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .topbar-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .topbar-breadcrumb span {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .topbar-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+            background: var(--bg-card);
+            transition: all var(--transition-fast);
+        }
+
+        .topbar-btn:hover {
+            border-color: var(--clr-primary);
+            color: var(--clr-primary);
+            background: var(--clr-primary-ghost);
+        }
+
+        .topbar-btn.primary {
+            background: var(--clr-primary);
+            color: #fff;
+            border-color: var(--clr-primary);
+        }
+
+        .topbar-btn.primary:hover {
+            background: var(--clr-primary-dark);
+        }
+
+        .topbar-btn.icon-only {
+            padding: 7px 9px;
+        }
+
+        /* Dashboard Body */
+        .dashboard-body {
+            flex: 1;
+            padding: 24px 28px 40px;
+        }
+
+        /* Page Title Area */
+        .page-title-area {
+            margin-bottom: 24px;
+        }
+
+        .page-title-area h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .page-title-area p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+
+        /* ============================================================
+   STAT CARDS
+   ============================================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all var(--transition-normal);
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card-hover);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card:nth-child(1)::before {
+            background: var(--clr-primary);
+        }
+
+        .stat-card:nth-child(2)::before {
+            background: var(--clr-accent);
+        }
+
+        .stat-card:nth-child(3)::before {
+            background: #8b5cf6;
+        }
+
+        .stat-card:nth-child(4)::before {
+            background: var(--clr-warning);
+        }
+
+        .stat-card:nth-child(5)::before {
+            background: var(--clr-danger);
+        }
+
+        .stat-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .stat-card:nth-child(1) .stat-card-icon {
+            background: var(--clr-primary-ghost);
+            color: var(--clr-primary);
+        }
+
+        .stat-card:nth-child(2) .stat-card-icon {
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--clr-accent);
+        }
+
+        .stat-card:nth-child(3) .stat-card-icon {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+
+        .stat-card:nth-child(4) .stat-card-icon {
+            background: var(--clr-warning-ghost);
+            color: var(--clr-warning);
+        }
+
+        .stat-card:nth-child(5) .stat-card-icon {
+            background: var(--clr-danger-ghost);
+            color: var(--clr-danger);
+        }
+
+        .stat-card-trend {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+        }
+
+        .stat-card-trend.up {
+            background: var(--clr-success-ghost);
+            color: var(--clr-success);
+        }
+
+        .stat-card-trend.down {
+            background: var(--clr-danger-ghost);
+            color: var(--clr-danger);
+        }
+
+        .stat-card-value {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .stat-card-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+
+        /* ============================================================
+   FILTER BAR
+   ============================================================ */
+        .filter-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            transition: background var(--transition-slow), border var(--transition-slow);
+        }
+
+        .filter-search {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .filter-search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        .filter-search input {
+            width: 100%;
+            padding: 9px 12px 9px 36px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            transition: all var(--transition-fast);
+        }
+
+        .filter-search input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .filter-search input:focus {
+            border-color: var(--clr-primary);
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+        }
+
+        .filter-select {
+            position: relative;
+        }
+
+        .filter-select select {
+            padding: 9px 32px 9px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            appearance: none;
+            cursor: pointer;
+            min-width: 130px;
+            transition: all var(--transition-fast);
+        }
+
+        .filter-select select:focus {
+            border-color: var(--clr-primary);
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+        }
+
+        .filter-select::after {
+            content: '▾';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: var(--text-tertiary);
+            pointer-events: none;
+        }
+
+        .filter-btn-reset {
+            padding: 9px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+            background: var(--bg-card);
+            transition: all var(--transition-fast);
+        }
+
+        .filter-btn-reset:hover {
+            border-color: var(--clr-danger);
+            color: var(--clr-danger);
+            background: var(--clr-danger-ghost);
+        }
+
+
+        /* ============================================================
+   TABLE AREA
+   ============================================================ */
+        .table-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: background var(--transition-slow), border var(--transition-slow);
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-light);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .table-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .table-header-left h3 {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .table-header-count {
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--bg-badge);
+            color: var(--text-secondary);
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+        }
+
+        .selected-count {
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--clr-primary-ghost);
+            color: var(--clr-primary);
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            display: none;
+        }
+
+        .selected-count.visible {
+            display: inline-block;
+        }
+
+        .table-header-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .table-action-btn {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all var(--transition-fast);
+        }
+
+        .table-action-btn:hover {
+            border-color: var(--clr-primary);
+            color: var(--clr-primary);
+            background: var(--clr-primary-ghost);
+        }
+
+        /* Table */
+        .data-table-wrap {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            padding: 10px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-tertiary);
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+            transition: color var(--transition-fast);
+        }
+
+        .data-table th:hover {
+            color: var(--clr-primary);
+        }
+
+        .data-table th .sort-arrow {
+            margin-left: 4px;
+            font-size: 10px;
+            opacity: 0.4;
+        }
+
+        .data-table th.sorted .sort-arrow {
+            opacity: 1;
+            color: var(--clr-primary);
+        }
+
+        .data-table td {
+            padding: 12px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .data-table tbody tr {
+            cursor: pointer;
+            transition: background var(--transition-fast);
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--bg-table-row-hover);
+        }
+
+        .data-table tbody tr.selected {
+            background: var(--bg-table-row-selected);
+        }
+
+        .data-table tbody tr.active-row {
+            background: var(--clr-primary-ghost-hover);
+            box-shadow: inset 3px 0 0 var(--clr-primary);
+        }
+
+        /* Cell Components */
+        .cell-checkbox {
+            width: 40px;
+        }
+
+        .cell-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--clr-primary);
+            cursor: pointer;
+        }
+
+        .cell-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cell-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .cell-user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cell-user-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .cell-user-id {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .cell-badge {
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-student {
+            background: rgba(14, 165, 233, 0.1);
+            color: #0284c7;
+        }
+
+        .badge-staff {
+            background: rgba(139, 92, 246, 0.1);
+            color: #7c3aed;
+        }
+
+        .badge-visitor {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+
+        .cell-time {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .cell-time-in {
+            font-size: 12px;
+            color: var(--clr-success);
+            font-weight: 500;
+        }
+
+        .cell-time-out {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .cell-status {
+            display: flex;
+            align-items: center;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .status-verified {
+            background: var(--clr-success-ghost);
+            color: var(--clr-success);
+        }
+
+        .status-unverified {
+            background: var(--clr-warning-ghost);
+            color: var(--clr-warning);
+        }
+
+        .status-threat {
+            background: var(--clr-danger-ghost);
+            color: var(--clr-danger);
+        }
+
+        /* Pagination */
+        .table-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-light);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pagination-info {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .pagination-btn {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+            transition: all var(--transition-fast);
+            min-width: 34px;
+            text-align: center;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            border-color: var(--clr-primary);
+            color: var(--clr-primary);
+            background: var(--clr-primary-ghost);
+        }
+
+        .pagination-btn.active {
+            background: var(--clr-primary);
+            color: #fff;
+            border-color: var(--clr-primary);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+
+        /* ============================================================
+   RIGHT PANEL
+   ============================================================ */
+        .right-panel {
+            width: var(--panel-width);
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border-light);
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 90;
+            transition: background var(--transition-slow), border var(--transition-slow);
+        }
+
+        .panel-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 40px;
+            text-align: center;
+            color: var(--text-tertiary);
+        }
+
+        .panel-empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+
+        .panel-empty h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+
+        .panel-empty p {
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        /* Panel Content */
+        .panel-content {
+            display: none;
+        }
+
+        .panel-content.visible {
+            display: block;
+        }
+
+        .panel-profile-header {
+            padding: 24px 20px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--clr-primary-ghost) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .panel-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 24px;
+            color: #fff;
+            margin: 0 auto 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .panel-profile-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .panel-profile-id {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+        .panel-profile-badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 3px 12px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .panel-view-profile-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 14px;
+            padding: 8px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--clr-primary);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .panel-view-profile-btn:hover {
+            background: var(--clr-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+        }
+
+        .panel-details {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .panel-detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 12px;
+        }
+
+        .panel-detail-row:not(:last-child) {
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .panel-detail-label {
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
+        .panel-detail-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: right;
+        }
+
+        /* Entry Logs */
+        .panel-logs {
+            padding: 16px 20px;
+        }
+
+        .panel-logs-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .panel-log-item {
+            background: var(--bg-input);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all var(--transition-fast);
+        }
+
+        .panel-log-item:hover {
+            box-shadow: var(--shadow-sm);
+        }
+
+        .panel-log-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-log-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 11px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .panel-log-info {
+            flex: 1;
+        }
+
+        .panel-log-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .panel-log-time {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .panel-log-status {
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .log-status-verified {
+            background: var(--clr-success-ghost);
+            color: var(--clr-success);
+        }
+
+        .log-status-pending {
+            background: var(--clr-warning-ghost);
+            color: var(--clr-warning);
+        }
+
+        .log-status-flagged {
+            background: var(--clr-danger-ghost);
+            color: var(--clr-danger);
+        }
+
+        .log-status-removed {
+            background: var(--bg-badge);
+            color: var(--text-tertiary);
+            text-decoration: line-through;
+        }
+
+        .panel-log-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .log-action-btn {
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 10px;
+            font-weight: 600;
+            border: 1px solid var(--border-light);
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+        }
+
+        .log-action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .log-action-btn.verify:hover {
+            background: var(--clr-success-ghost);
+            border-color: var(--clr-success);
+            color: var(--clr-success);
+        }
+
+        .log-action-btn.flag:hover {
+            background: var(--clr-danger-ghost);
+            border-color: var(--clr-danger);
+            color: var(--clr-danger);
+        }
+
+        .log-action-btn.remove:hover {
+            background: var(--bg-badge);
+            border-color: var(--text-tertiary);
+            color: var(--text-tertiary);
+        }
+
+
+        /* ============================================================
+   MODAL
+   ============================================================ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-normal);
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: var(--shadow-xl);
+            transform: translateY(20px) scale(0.95);
+            transition: transform var(--transition-normal);
+        }
+
+        .modal-overlay.visible .modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--text-tertiary);
+            transition: all var(--transition-fast);
+        }
+
+        .modal-close:hover {
+            background: var(--bg-badge);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .modal-row-label {
+            color: var(--text-tertiary);
+        }
+
+        .modal-row-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-footer {
+            margin-top: 24px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .modal-footer button {
+            padding: 9px 24px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            background: var(--clr-primary);
+            color: #fff;
+            transition: all var(--transition-fast);
+        }
+
+        .modal-footer button:hover {
+            background: var(--clr-primary-dark);
+        }
+
+
+        /* ============================================================
+   TOAST
+   ============================================================ */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .toast {
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            color: #fff;
+            box-shadow: var(--shadow-lg);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+            max-width: 400px;
+        }
+
+        .toast.success {
+            background: var(--clr-success);
+        }
+
+        .toast.error {
+            background: var(--clr-danger);
+        }
+
+        .toast.info {
+            background: var(--clr-accent);
+        }
+
+        .toast.warning {
+            background: var(--clr-warning);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+
+        /* ============================================================
+   SCROLLBAR
+   ============================================================ */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+
+
+        /* ============================================================
+   NO DATA
+   ============================================================ */
+        .no-data-row td {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-tertiary);
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- =============================== APP SHELL =============================== -->
+    <div id="app-shell">
+
+        <!-- =================== LEFT SIDEBAR =================== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon">🏛</div>
+                    <div class="sidebar-logo-text">
+                        GeoVision
+                        <span>Campus Management</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-profile">
+                <div class="sidebar-avatar" id="sidebar-user-avatar">AD</div>
+                <div class="sidebar-profile-info">
+                    <div class="sidebar-profile-name" id="sidebar-user-name">Admin</div>
+                    <div class="sidebar-profile-role">Administrator</div>
+                </div>
+                <div class="sidebar-status-dot"></div>
+            </div>
+
+            <nav class="sidebar-nav" id="sidebar-nav">
+                <div class="sidebar-nav-label">Main Menu</div>
+                <div class="sidebar-nav-item" data-page="cctv">
+                    <span class="sidebar-nav-icon">📹</span>
+                    CCTV Feed
+                </div>
+                <div class="sidebar-nav-item active" data-page="entry-history">
+                    <span class="sidebar-nav-icon">🚪</span>
+                    Entry History
+                </div>
+                <div class="sidebar-nav-item" data-page="threats">
+                    <span class="sidebar-nav-icon">⚠️</span>
+                    Threats
+                    <span class="sidebar-nav-badge">3</span>
+                </div>
+                <div class="sidebar-nav-item" data-page="visitor-entry">
+                    <span class="sidebar-nav-icon">🎫</span>
+                    Visitor Entry
+                </div>
+
+                <div class="sidebar-nav-label" style="margin-top:16px">Analytics</div>
+                <div class="sidebar-nav-item" data-page="reports">
+                    <span class="sidebar-nav-icon">📊</span>
+                    Reports
+                </div>
+                <div class="sidebar-nav-item" data-page="settings">
+                    <span class="sidebar-nav-icon">⚙️</span>
+                    Settings
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="sidebar-footer-btn" id="btn-logout">
+                    <span>🚪</span> Logout
+                </button>
+            </div>
+        </aside>
+
+
+        <!-- =================== MAIN CONTENT =================== -->
+        <main class="main-content" id="main-content">
+
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <div class="topbar-breadcrumb">
+                        Dashboard / <span>Entry History</span>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <button class="topbar-btn" id="btn-toggle-theme" title="Toggle Theme">
+                        🌙 Theme
+                    </button>
+                    <button class="topbar-btn" id="btn-clear-selection" title="Clear Selection">
+                        ✖ Clear
+                    </button>
+                    <button class="topbar-btn" id="btn-refresh" title="Refresh Data">
+                        🔄 Refresh
+                    </button>
+                    <button class="topbar-btn primary" id="btn-export" title="Export Data">
+                        📥 Export
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Body -->
+            <div class="dashboard-body">
+
+                <!-- Page Title -->
+                <div class="page-title-area">
+                    <h1>Entry History Dashboard</h1>
+                    <p>Real-time campus entry and exit monitoring · Last updated <span id="last-updated">just now</span>
+                    </p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid" id="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon">👥</div>
+                            
+                        </div>
+                        <div class="stat-card-value" id="stat-total">0</div>
+                        <div class="stat-card-label">People on Campus</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon">🎓</div>
+                            
+                        </div>
+                        <div class="stat-card-value" id="stat-students">0</div>
+                        <div class="stat-card-label">Students</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon">👨🏫</div>
+                                                    </div>
+                        <div class="stat-card-value" id="stat-staff">0</div>
+                        <div class="stat-card-label">Staff</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon">🎫</div>
+                            
+                        </div>
+                        <div class="stat-card-value" id="stat-visitors">0</div>
+                        <div class="stat-card-label">Visitors</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-icon">🔴</div>
+                            
+                        </div>
+                        <div class="stat-card-value" id="stat-threats">0</div>
+                        <div class="stat-card-label">Potential Threats</div>
+                    </div>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="filter-bar" id="filter-bar">
+                    <div class="filter-search">
+                        <span class="filter-search-icon">🔍</span>
+                        <input type="text" id="filter-name" placeholder="Search by name or ID...">
+                    </div>
+                    <div class="filter-select">
+                        <select id="filter-role">
+                            <option value="">All Roles</option>
+                            <option value="Student">Student</option>
+                            <option value="Staff">Staff</option>
+                            <option value="Visitor">Visitor</option>
+                        </select>
+                    </div>
+                    <div class="filter-select">
+                        <select id="filter-date">
+                            <option value="">All Dates</option>
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="week">This Week</option>
+                        </select>
+                    </div>
+                    <div class="filter-select">
+                        <select id="filter-entry-point">
+                            <option value="">All Entry Points</option>
+                            <option value="Main Gate">Main Gate</option>
+                            <option value="East Wing">East Wing</option>
+                            <option value="Library Gate">Library Gate</option>
+                            <option value="Parking Lot B">Parking Lot B</option>
+                        </select>
+                    </div>
+                    <button class="filter-btn-reset" id="btn-reset-filters">Reset Filters</button>
+                </div>
+
+                <!-- Entry Table -->
+                <div class="table-section">
+                    <div class="table-header">
+                        <div class="table-header-left">
+                            <h3>Entry Records</h3>
+                            <span class="table-header-count" id="table-count">0 records</span>
+                            <span class="selected-count" id="selected-count">0 selected</span>
+                        </div>
+                        <div class="table-header-right">
+                            <button class="table-action-btn" id="btn-select-all">☑ Select All</button>
+                            <button class="table-action-btn" id="btn-deselect-all">☐ Deselect</button>
+                        </div>
+                    </div>
+                    <div class="data-table-wrap">
+                        <table class="data-table" id="entry-table">
+                            <thead>
+                                <tr>
+                                    <th class="cell-checkbox"><input type="checkbox" id="check-all"></th>
+                                    <th data-sort="name">Name <span class="sort-arrow">▲</span></th>
+                                    <th data-sort="role">Designation <span class="sort-arrow">▲</span></th>
+                                    <th data-sort="entryTime">Entry Time <span class="sort-arrow">▲</span></th>
+                                    <th data-sort="exitTime">Exit Time <span class="sort-arrow">▲</span></th>
+                                    <th data-sort="entryPoint">Entry Point <span class="sort-arrow">▲</span></th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <!-- Rendered by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <div class="pagination-info" id="pagination-info">Showing 0 of 0</div>
+                        <div class="pagination-controls" id="pagination-controls">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+
+        <!-- =================== RIGHT DETAILS PANEL =================== -->
+        <aside class="right-panel" id="right-panel">
+            <div class="panel-empty" id="panel-empty">
+                <div class="panel-empty-icon">👤</div>
+                <h3>No Person Selected</h3>
+                <p>Click on a row in the entry table to view detailed profile and entry logs.</p>
+            </div>
+            <div class="panel-content" id="panel-content">
+                <!-- Profile Header -->
+                <div class="panel-profile-header">
+                    <div class="panel-avatar" id="panel-avatar"></div>
+                    <div class="panel-profile-name" id="panel-name"></div>
+                    <div class="panel-profile-id" id="panel-id"></div>
+                    <div class="panel-profile-badge" id="panel-badge"></div>
+                    <button class="panel-view-profile-btn" id="panel-view-profile-btn">👤 View Profile</button>
+                </div>
+                <!-- Details -->
+                <div class="panel-details" id="panel-details">
+                    <!-- Rendered by JS -->
+                </div>
+                <!-- Entry Logs -->
+                <div class="panel-logs">
+                    <div class="panel-logs-title">Entry Logs</div>
+                    <div id="panel-logs-list">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+
+    <!-- ========================= MODAL ========================= -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h2 id="modal-title">User Profile</h2>
+                <button class="modal-close" id="modal-close">✕</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Rendered by JS -->
+            </div>
+            <div class="modal-footer">
+                <button id="modal-ok-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ========================= TOAST ========================= -->
+    <div class="toast-container" id="toast-container"></div>
+
+
+    <!-- ============================================================
+     JAVASCRIPT — ALL LOGIC
+     ============================================================ -->
+    <script>
+        // ============================================================
+        // DATA
+        // ============================================================
+        const AVATAR_COLORS = [
+            '#16a34a', '#0ea5e9', '#8b5cf6', '#ec4899', '#f59e0b',
+            '#ef4444', '#06b6d4', '#10b981', '#6366f1', '#d946ef'
+        ];
+
+        function avatarColor(name) {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+        }
+
+        function initials(name) {
+            return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+        }
+
+        let entryData = [
+            {
+                id: 'STU-2024-0451', name: 'Aarav Sharma', role: 'Student',
+                entryTime: '2026-04-14T08:12:00', exitTime: '2026-04-14T14:30:00',
+                entryPoint: 'Main Gate', threat: false,
+                logs: [
+                    { time: '08:12 AM', direction: 'IN', status: 'verified' },
+                    { time: '12:05 PM', direction: 'OUT', status: 'verified' },
+                    { time: '12:42 PM', direction: 'IN', status: 'pending' },
+                    { time: '02:30 PM', direction: 'OUT', status: 'verified' }
+                ]
+            },
+            {
+                id: 'STU-2024-0312', name: 'Priya Patel', role: 'Student',
+                entryTime: '2026-04-14T07:45:00', exitTime: '2026-04-14T16:00:00',
+                entryPoint: 'East Wing', threat: false,
+                logs: [
+                    { time: '07:45 AM', direction: 'IN', status: 'verified' },
+                    { time: '04:00 PM', direction: 'OUT', status: 'pending' }
+                ]
+            },
+            {
+                id: 'STF-2024-0089', name: 'Dr. Rajesh Kumar', role: 'Staff',
+                entryTime: '2026-04-14T07:30:00', exitTime: '2026-04-14T17:00:00',
+                entryPoint: 'Main Gate', threat: false,
+                logs: [
+                    { time: '07:30 AM', direction: 'IN', status: 'verified' },
+                    { time: '05:00 PM', direction: 'OUT', status: 'verified' }
+                ]
+            },
+            {
+                id: 'VIS-2024-0210', name: 'Meera Joshi', role: 'Visitor', 
+                entryTime: '2026-04-14T10:00:00', exitTime: null,
+                entryPoint: 'Library Gate', threat: false,
+                logs: [
+                    { time: '10:00 AM', direction: 'IN', status: 'pending' }
+                ]
+            },
+            {
+                id: 'STU-2024-0578', name: 'Rohan Desai', role: 'Student',
+                entryTime: '2026-04-14T08:30:00', exitTime: '2026-04-14T13:15:00',
+                entryPoint: 'Parking Lot B', threat: true,
+                logs: [
+                    { time: '08:30 AM', direction: 'IN', status: 'flagged' },
+                    { time: '01:15 PM', direction: 'OUT', status: 'verified' }
+                ]
+            },
+            {
+                id: 'STF-2024-0042', name: 'Prof. Anita Deshmukh', role: 'Staff', 
+                entryTime: '2026-04-14T08:00:00', exitTime: '2026-04-14T18:00:00',
+                entryPoint: 'East Wing', threat: false,
+                logs: [
+                    { time: '08:00 AM', direction: 'IN', status: 'verified' },
+                    { time: '12:30 PM', direction: 'OUT', status: 'verified' },
+                    { time: '01:15 PM', direction: 'IN', status: 'verified' },
+                    { time: '06:00 PM', direction: 'OUT', status: 'verified' }
+                ]
+            },
+            {
+                id: 'VIS-2024-0315', name: 'Vikram Singh', role: 'Visitor', 
+                entryTime: '2026-04-14T09:15:00', exitTime: '2026-04-14T11:45:00',
+                entryPoint: 'Main Gate', threat: false,
+                logs: [
+                    { time: '09:15 AM', direction: 'IN', status: 'verified' },
+                    { time: '11:45 AM', direction: 'OUT', status: 'verified' }
+                ]
+            },
+            {
+                id: 'STU-2024-0623', name: 'Sneha Reddy', role: 'Student',
+                entryTime: '2026-04-14T09:00:00', exitTime: null,
+                entryPoint: 'Library Gate', threat: false,
+                logs: [
+                    { time: '09:00 AM', direction: 'IN', status: 'verified' }
+                ]
+            },
+            {
+                id: 'STF-2024-0056', name: 'Mr. Sanjay Gupta', role: 'Staff', 
+                entryTime: '2026-04-14T07:50:00', exitTime: '2026-04-14T16:30:00',
+                entryPoint: 'Parking Lot B', threat: false,
+                logs: [
+                    { time: '07:50 AM', direction: 'IN', status: 'verified' },
+                    { time: '04:30 PM', direction: 'OUT', status: 'pending' }
+                ]
+            },
+            {
+                id: 'VIS-2024-0401', name: 'Kavita Nair', role: 'Visitor',
+                entryTime: '2026-04-14T11:00:00', exitTime: '2026-04-14T13:00:00',
+                entryPoint: 'East Wing', threat: false,
+                logs: [
+                    { time: '11:00 AM', direction: 'IN', status: 'verified' },
+                    { time: '01:00 PM', direction: 'OUT', status: 'verified' }
+                ]
+            },
+            {
+                id: 'STU-2024-0702', name: 'Arjun Mehta', role: 'Student', 
+                entryTime: '2026-04-14T08:45:00', exitTime: '2026-04-14T15:00:00',
+                entryPoint: 'Main Gate', threat: true,
+                logs: [
+                    { time: '08:45 AM', direction: 'IN', status: 'flagged' },
+                    { time: '03:00 PM', direction: 'OUT', status: 'pending' }
+                ]
+            },
+            {
+                id: 'STU-2024-0815', name: 'Ishita Verma', role: 'Student',
+                entryTime: '2026-04-14T08:20:00', exitTime: '2026-04-14T14:00:00',
+                entryPoint: 'East Wing', threat: false,
+                logs: [
+                    { time: '08:20 AM', direction: 'IN', status: 'verified' },
+                    { time: '02:00 PM', direction: 'OUT', status: 'verified' }
+                ]
+            },
+            {
+                id: 'STF-2024-0071', name: 'Dr. Sunita Rao', role: 'Staff',
+                entryTime: '2026-04-14T07:15:00', exitTime: '2026-04-14T17:30:00',
+                entryPoint: 'Main Gate', threat: false,
+                logs: [
+                    { time: '07:15 AM', direction: 'IN', status: 'verified' },
+                    { time: '05:30 PM', direction: 'OUT', status: 'verified' }
+                ]
+            },
+            {
+                id: 'VIS-2024-0502', name: 'Rahul Khanna', role: 'Visitor',
+                entryTime: '2026-04-14T10:30:00', exitTime: null,
+                entryPoint: 'Library Gate', threat: true,
+                logs: [
+                    { time: '10:30 AM', direction: 'IN', status: 'flagged' }
+                ]
+            },
+            {
+                id: 'STU-2024-0930', name: 'Diya Kapoor', role: 'Student', 
+                entryTime: '2026-04-14T09:10:00', exitTime: '2026-04-14T15:45:00',
+                entryPoint: 'Parking Lot B', threat: false,
+                logs: [
+                    { time: '09:10 AM', direction: 'IN', status: 'verified' },
+                    { time: '03:45 PM', direction: 'OUT', status: 'verified' }
+                ]
+            }
+        ];
+
+
+        // ============================================================
+        // STATE
+        // ============================================================
+        let filteredData = [...entryData];
+        let selectedIds = new Set();
+        let activeUserId = null;
+        let currentPage = 1;
+        const pageSize = 6;
+        let sortField = null;
+        let sortAsc = true;
+
+
+        // ============================================================
+        // DOM REFERENCES
+        // ============================================================
+        const $ = (sel) => document.querySelector(sel);
+        const $$ = (sel) => document.querySelectorAll(sel);
+
+        const DOM = {
+            body: document.body,
+            filterName: $('#filter-name'),
+            filterRole: $('#filter-role'),
+            filterDate: $('#filter-date'),
+            filterEntryPoint: $('#filter-entry-point'),
+            tableBody: $('#table-body'),
+            tableCount: $('#table-count'),
+            selectedCount: $('#selected-count'),
+            paginationInfo: $('#pagination-info'),
+            paginationControls: $('#pagination-controls'),
+            checkAll: $('#check-all'),
+            panelEmpty: $('#panel-empty'),
+            panelContent: $('#panel-content'),
+            panelAvatar: $('#panel-avatar'),
+            panelName: $('#panel-name'),
+            panelId: $('#panel-id'),
+            panelBadge: $('#panel-badge'),
+            panelDetails: $('#panel-details'),
+            panelLogsList: $('#panel-logs-list'),
+            modalOverlay: $('#modal-overlay'),
+            modalTitle: $('#modal-title'),
+            modalBody: $('#modal-body'),
+            toastContainer: $('#toast-container'),
+            statTotal: $('#stat-total'),
+            statStudents: $('#stat-students'),
+            statStaff: $('#stat-staff'),
+            statVisitors: $('#stat-visitors'),
+            statThreats: $('#stat-threats'),
+            lastUpdated: $('#last-updated')
+        };
+
+
+        // ============================================================
+        // UTILITY FUNCTIONS
+        // ============================================================
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            DOM.toastContainer.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function formatTime(isoStr) {
+            if (!isoStr) return '—';
+            const d = new Date(isoStr);
+            return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+
+        function formatDate(isoStr) {
+            if (!isoStr) return '—';
+            const d = new Date(isoStr);
+            return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+
+        // ============================================================
+        // STATS
+        // ============================================================
+        function updateStats() {
+            const total = entryData.length;
+            const students = entryData.filter(d => d.role === 'Student').length;
+            const staff = entryData.filter(d => d.role === 'Staff').length;
+            const visitors = entryData.filter(d => d.role === 'Visitor').length;
+            const threats = entryData.filter(d => d.threat).length;
+
+            animateNumber(DOM.statTotal, total);
+            animateNumber(DOM.statStudents, students);
+            animateNumber(DOM.statStaff, staff);
+            animateNumber(DOM.statVisitors, visitors);
+            animateNumber(DOM.statThreats, threats);
+        }
+
+        function animateNumber(el, target) {
+            const start = parseInt(el.textContent) || 0;
+            const duration = 600;
+            const startTime = performance.now();
+
+            function tick(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(start + (target - start) * eased);
+                if (progress < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        }
+
+
+        // ============================================================
+        // FILTERING
+        // ============================================================
+        function applyFilters() {
+            const nameQuery = DOM.filterName.value.toLowerCase().trim();
+            const roleQuery = DOM.filterRole.value;
+            const dateQuery = DOM.filterDate.value;
+            const entryPointQuery = DOM.filterEntryPoint.value;
+
+            filteredData = entryData.filter(user => {
+                // Name / ID filter
+                if (nameQuery && !user.name.toLowerCase().includes(nameQuery) && !user.id.toLowerCase().includes(nameQuery)) return false;
+                // Role
+                if (roleQuery && user.role !== roleQuery) return false;
+                // Date simulation
+                if (dateQuery === 'today') {
+                    const today = new Date().toDateString();
+                    if (new Date(user.entryTime).toDateString() !== today) return false;
+                }
+                // Entry Point
+                if (entryPointQuery && user.entryPoint !== entryPointQuery) return false;
+                return true;
+            });
+
+            // Apply sort
+            if (sortField) {
+                filteredData.sort((a, b) => {
+                    let valA = a[sortField], valB = b[sortField];
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+                    if (valA < valB) return sortAsc ? -1 : 1;
+                    if (valA > valB) return sortAsc ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            currentPage = 1;
+            renderTable();
+        }
+
+
+        // ============================================================
+        // TABLE RENDERING
+        // ============================================================
+        function renderTable() {
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = filteredData.slice(start, end);
+
+            DOM.tableCount.textContent = `${filteredData.length} records`;
+            updateSelectedCount();
+
+            if (pageData.length === 0) {
+                DOM.tableBody.innerHTML = `<tr class="no-data-row"><td colspan="7">No entries match your filters</td></tr>`;
+                renderPagination();
+                return;
+            }
+
+            DOM.tableBody.innerHTML = pageData.map(user => {
+                const isSelected = selectedIds.has(user.id);
+                const isActive = activeUserId === user.id;
+                const color = avatarColor(user.name);
+                const badgeClass = `badge-${user.role.toLowerCase()}`;
+
+                // Determine status
+                let statusLabel, statusClass, statusIcon;
+                if (user.threat) {
+                    statusLabel = 'Potential Threat';
+                    statusClass = 'status-threat';
+                    statusIcon = '⚠';
+                } else if (user.logs && user.logs.every(l => l.status === 'verified')) {
+                    statusLabel = 'Verified';
+                    statusClass = 'status-verified';
+                    statusIcon = '✓';
+                } else {
+                    statusLabel = 'Unverified';
+                    statusClass = 'status-unverified';
+                    statusIcon = '◔';
+                }
+
+                return `
+        <tr data-id="${user.id}" class="${isSelected ? 'selected' : ''} ${isActive ? 'active-row' : ''}">
+            <td class="cell-checkbox">
+                <input type="checkbox" ${isSelected ? 'checked' : ''} data-check-id="${user.id}">
+            </td>
+            <td>
+                <div class="cell-user">
+                    <div class="cell-avatar" style="background:${color}">${initials(user.name)}</div>
+                    <div class="cell-user-info">
+                        <div class="cell-user-name">${user.name}</div>
+                        <div class="cell-user-id">${user.id}</div>
+                    </div>
+                </div>
+            </td>
+            <td><span class="cell-badge ${badgeClass}">${user.role}</span></td>
+            <td><span class="cell-time-in">↗ ${formatTime(user.entryTime)}</span></td>
+            <td><span class="cell-time-out">${user.exitTime ? '↙ ' + formatTime(user.exitTime) : 'On Campus'}</span></td>
+            <td>${user.entryPoint}</td>
+            <td>
+                <div class="cell-status">
+                    <span class="status-badge ${statusClass}">${statusIcon} ${statusLabel}</span>
+                </div>
+            </td>
+        </tr>`;
+            }).join('');
+
+            renderPagination();
+        }
+
+
+        // ============================================================
+        // PAGINATION
+        // ============================================================
+        function renderPagination() {
+            const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
+            const start = (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, filteredData.length);
+
+            DOM.paginationInfo.textContent = filteredData.length > 0
+                ? `Showing ${start}–${end} of ${filteredData.length}`
+                : 'No results';
+
+            let html = '';
+            html += `<button class="pagination-btn" data-page="prev" ${currentPage <= 1 ? 'disabled' : ''}>‹ Prev</button>`;
+
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+            }
+
+            html += `<button class="pagination-btn" data-page="next" ${currentPage >= totalPages ? 'disabled' : ''}>Next ›</button>`;
+
+            DOM.paginationControls.innerHTML = html;
+        }
+
+
+        // ============================================================
+        // SELECTION
+        // ============================================================
+        function updateSelectedCount() {
+            const count = selectedIds.size;
+            DOM.selectedCount.textContent = `${count} selected`;
+            DOM.selectedCount.classList.toggle('visible', count > 0);
+            DOM.checkAll.checked = filteredData.length > 0 && filteredData.every(u => selectedIds.has(u.id));
+        }
+
+        function toggleSelection(id) {
+            if (selectedIds.has(id)) {
+                selectedIds.delete(id);
+            } else {
+                selectedIds.add(id);
+            }
+            renderTable();
+        }
+
+
+        // ============================================================
+        // RIGHT PANEL
+        // ============================================================
+        function showPanel(userId) {
+            const user = entryData.find(u => u.id === userId);
+            if (!user) return;
+
+            activeUserId = userId;
+            const color = avatarColor(user.name);
+            const badgeClass = `badge-${user.role.toLowerCase()}`;
+
+            DOM.panelAvatar.textContent = initials(user.name);
+            DOM.panelAvatar.style.background = color;
+            DOM.panelName.textContent = user.name;
+            DOM.panelId.textContent = user.id;
+            DOM.panelBadge.className = `panel-profile-badge ${badgeClass}`;
+            DOM.panelBadge.textContent = user.role;
+
+            DOM.panelDetails.innerHTML = [
+                ['Entry Point', user.entryPoint],
+                ['Entry Date', formatDate(user.entryTime)],
+                ['Entry Time', formatTime(user.entryTime)],
+                ['Exit Date', user.exitTime ? formatDate(user.exitTime) : '—'],
+                ['Exit Time', user.exitTime ? formatTime(user.exitTime) : 'Still on campus'],
+                ['Threat Status', user.threat ? '⚠ Flagged' : '✓ Clear']
+            ].map(([label, value]) => `
+        <div class="panel-detail-row">
+            <span class="panel-detail-label">${label}</span>
+            <span class="panel-detail-value">${value}</span>
+        </div>
+    `).join('');
+
+            // Wire up the View Profile button in the panel
+            const panelProfileBtn = document.getElementById('panel-view-profile-btn');
+            if (panelProfileBtn) {
+                panelProfileBtn.onclick = () => {
+                    // Store selected user data for display-details page
+                    localStorage.setItem('geoVision_viewProfile', JSON.stringify(user));
+                    window.location.href = '../user/display-details.html';
+                };
+            }
+
+            renderPanelLogs(user);
+
+            DOM.panelEmpty.style.display = 'none';
+            DOM.panelContent.classList.add('visible');
+            renderTable();
+        }
+
+        function renderPanelLogs(user) {
+            const color = avatarColor(user.name);
+
+            DOM.panelLogsList.innerHTML = user.logs.map((log, idx) => {
+                const statusClass = `log-status-${log.status}`;
+                return `
+        <div class="panel-log-item">
+            <div class="panel-log-top">
+                <div class="panel-log-avatar" style="background:${color}">${initials(user.name)}</div>
+                <div class="panel-log-info">
+                    <div class="panel-log-name">${user.name}</div>
+                    <div class="panel-log-time">${log.time} · ${log.direction}</div>
+                </div>
+                <span class="panel-log-status ${statusClass}">${log.status}</span>
+            </div>
+        </div>`;
+            }).join('');
+        }
+
+
+        // ============================================================
+        // MODAL
+        // ============================================================
+        function openModal(userId) {
+            const user = entryData.find(u => u.id === userId);
+            if (!user) return;
+
+            DOM.modalTitle.textContent = `${user.name} — Profile`;
+            DOM.modalBody.innerHTML = [
+                ['Full Name', user.name],
+                ['ID', user.id],
+                ['Role', user.role],
+                ['Entry Point', user.entryPoint],
+                ['Entry Time', formatDate(user.entryTime) + ' ' + formatTime(user.entryTime)],
+                ['Exit Time', user.exitTime ? formatDate(user.exitTime) + ' ' + formatTime(user.exitTime) : 'On Campus'],
+                ['Threat Status', user.threat ? '⚠ Flagged' : '✓ Clear']
+            ].map(([l, v]) => `<div class="modal-row"><span class="modal-row-label">${l}</span><span class="modal-row-value">${v}</span></div>`).join('');
+
+            DOM.modalOverlay.classList.add('visible');
+        }
+
+        function closeModal() {
+            DOM.modalOverlay.classList.remove('visible');
+        }
+
+
+        // ============================================================
+        // SORTING
+        // ============================================================
+        function handleSort(field) {
+            if (sortField === field) {
+                sortAsc = !sortAsc;
+            } else {
+                sortField = field;
+                sortAsc = true;
+            }
+
+            // Update arrow UI
+            $$('.data-table th').forEach(th => {
+                th.classList.remove('sorted');
+                const arrow = th.querySelector('.sort-arrow');
+                if (arrow) arrow.textContent = '▲';
+            });
+            const activeTh = $(`.data-table th[data-sort="${field}"]`);
+            if (activeTh) {
+                activeTh.classList.add('sorted');
+                const arrow = activeTh.querySelector('.sort-arrow');
+                if (arrow) arrow.textContent = sortAsc ? '▲' : '▼';
+            }
+
+            applyFilters();
+        }
+
+
+        // ============================================================
+        // EXPORT
+        // ============================================================
+        function exportData() {
+            const dataToExport = filteredData.map(u => ({
+                Name: u.name, ID: u.id, Role: u.role, EntryTime: u.entryTime,
+                ExitTime: u.exitTime || 'On Campus', EntryPoint: u.entryPoint, Threat: u.threat
+            }));
+
+            const csv = [
+                Object.keys(dataToExport[0]).join(','),
+                ...dataToExport.map(row => Object.values(row).join(','))
+            ].join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'entry_history_export.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Data exported as CSV', 'success');
+        }
+
+
+        // ============================================================
+        // THEME TOGGLE
+        // ============================================================
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+
+            const btn = $('#btn-toggle-theme');
+            btn.innerHTML = next === 'dark' ? '☀️ Theme' : '🌙 Theme';
+            showToast(`Switched to ${next} mode`, 'info');
+        }
+
+
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+        function bindEvents() {
+            // Filter inputs
+            DOM.filterName.addEventListener('input', applyFilters);
+            DOM.filterRole.addEventListener('change', applyFilters);
+            DOM.filterDate.addEventListener('change', applyFilters);
+            DOM.filterEntryPoint.addEventListener('change', applyFilters);
+
+            // Reset filters
+            $('#btn-reset-filters').addEventListener('click', () => {
+                DOM.filterName.value = '';
+                DOM.filterRole.value = '';
+                DOM.filterDate.value = '';
+                DOM.filterEntryPoint.value = '';
+                applyFilters();
+                showToast('Filters cleared', 'info');
+            });
+
+            // Check all
+            DOM.checkAll.addEventListener('change', (e) => {
+                filteredData.forEach(u => {
+                    if (e.target.checked) selectedIds.add(u.id);
+                    else selectedIds.delete(u.id);
+                });
+                renderTable();
+            });
+
+            // Table body delegation
+            DOM.tableBody.addEventListener('click', (e) => {
+                const row = e.target.closest('tr');
+                if (!row) return;
+                const userId = row.dataset.id;
+
+                // Checkbox click
+                if (e.target.matches('input[type="checkbox"]')) {
+                    toggleSelection(e.target.dataset.checkId);
+                    e.stopPropagation();
+                    return;
+                }
+
+
+
+                // Row click → show in panel
+                if (userId) {
+                    showPanel(userId);
+                }
+            });
+
+            // Table header sort
+            $$('.data-table th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => handleSort(th.dataset.sort));
+            });
+
+            // Pagination
+            DOM.paginationControls.addEventListener('click', (e) => {
+                const btn = e.target.closest('.pagination-btn');
+                if (!btn || btn.disabled) return;
+                const val = btn.dataset.page;
+                const totalPages = Math.ceil(filteredData.length / pageSize);
+
+                if (val === 'prev') currentPage = Math.max(1, currentPage - 1);
+                else if (val === 'next') currentPage = Math.min(totalPages, currentPage + 1);
+                else currentPage = parseInt(val);
+
+                renderTable();
+            });
+
+            // Top bar buttons
+            $('#btn-toggle-theme').addEventListener('click', toggleTheme);
+
+            $('#btn-export').addEventListener('click', exportData);
+
+            $('#btn-refresh').addEventListener('click', () => {
+                applyFilters();
+                updateStats();
+                DOM.lastUpdated.textContent = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                showToast('Data refreshed', 'success');
+            });
+
+            $('#btn-clear-selection').addEventListener('click', () => {
+                selectedIds.clear();
+                activeUserId = null;
+                DOM.panelEmpty.style.display = '';
+                DOM.panelContent.classList.remove('visible');
+                renderTable();
+                showToast('Selection cleared', 'info');
+            });
+
+            $('#btn-select-all').addEventListener('click', () => {
+                filteredData.forEach(u => selectedIds.add(u.id));
+                renderTable();
+                showToast(`${selectedIds.size} entries selected`, 'success');
+            });
+
+            $('#btn-deselect-all').addEventListener('click', () => {
+                selectedIds.clear();
+                renderTable();
+                showToast('All deselected', 'info');
+            });
+
+            // Modal
+            $('#modal-close').addEventListener('click', closeModal);
+            $('#modal-ok-btn').addEventListener('click', closeModal);
+            DOM.modalOverlay.addEventListener('click', (e) => {
+                if (e.target === DOM.modalOverlay) closeModal();
+            });
+
+            // Sidebar navigation — route map
+            const pageRoutes = {
+                'cctv': 'cctv-feed.html',
+                'entry-history': 'entry-history.html',
+                'threats': 'security-threats.html',
+                'visitor-entry': '../user/signup-details.html',
+                'reports': 'dashboard.html',
+                'settings': 'dashboard.html'
+            };
+
+            $$('.sidebar-nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const page = item.dataset.page;
+                    if (page === 'entry-history') return; // Already on this page
+
+                    $$('.sidebar-nav-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+
+                    const route = pageRoutes[page];
+                    if (route) {
+                        showToast(`Navigating to ${item.textContent.trim()}...`, 'info');
+                        setTimeout(() => {
+                            window.location.href = route;
+                        }, 300);
+                    }
+                });
+            });
+
+            // Logout
+            $('#btn-logout').addEventListener('click', () => {
+                if (confirm('Are you sure you want to logout?')) {
+                    localStorage.removeItem('geoVision_user');
+                    window.location.href = '../index.html';
+                }
+            });
+
+            // Keyboard: Escape closes modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeModal();
+            });
+        }
+
+
+        // ============================================================
+        // INITIALIZE
+        // ============================================================
+        function init() {
+            // Dynamic User Profile
+            const storedUser = localStorage.getItem('geoVision_user');
+            if (storedUser) {
+                try {
+                    const user = JSON.parse(storedUser);
+                    const userNameEl = document.getElementById('sidebar-user-name');
+                    const userAvatarEl = document.getElementById('sidebar-user-avatar');
+
+                    if (userNameEl) userNameEl.textContent = user.name;
+                    if (userAvatarEl) {
+                        userAvatarEl.textContent = initials(user.name);
+                        userAvatarEl.style.background = avatarColor(user.name);
+                    }
+                } catch (e) {
+                    console.error('Error parsing stored user:', e);
+                }
+            }
+
+            updateStats();
+            applyFilters();
+            bindEvents();
+            DOM.lastUpdated.textContent = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+</body>
+
+</html>
