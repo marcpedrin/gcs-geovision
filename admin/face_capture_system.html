@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Advanced Face Capture System</title>
+
+<script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#0f172a;
+color:white;
+display:flex;
+height:100vh;
+}
+
+/* PROFILE PANEL */
+
+.profile-panel{
+width:280px;
+background:#020617;
+padding:20px;
+border-right:2px solid #1e293b;
+}
+
+.profile-img{
+width:100px;
+height:100px;
+border-radius:50%;
+background:#334155;
+margin:auto;
+margin-bottom:20px;
+}
+
+/* MAIN CAMERA AREA */
+
+.main{
+flex:1;
+padding:30px;
+text-align:center;
+}
+
+/* CAMERA BOX */
+
+.camera-box{
+position:relative;
+width:350px;
+height:420px;
+margin:auto;
+border-radius:20px;
+overflow:hidden;
+border:3px solid #334155;
+}
+
+video{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+/* FACE FRAME */
+
+.scan-frame{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+width:220px;
+height:270px;
+border:3px solid #22c55e;
+border-radius:20px;
+box-shadow:0 0 25px #22c55e;
+}
+
+/* SCAN LINE */
+
+.scan-line{
+position:absolute;
+width:100%;
+height:3px;
+background:#22c55e;
+animation:scan 2s infinite;
+}
+
+@keyframes scan{
+0%{top:0}
+100%{top:100%}
+}
+
+/* STATUS TEXT */
+
+.status{
+margin-top:15px;
+font-size:18px;
+color:#4ade80;
+}
+
+.progress{
+margin-top:10px;
+color:#94a3b8;
+}
+
+/* BUTTONS */
+
+button{
+padding:12px 18px;
+margin:10px;
+border:none;
+border-radius:8px;
+background:#22c55e;
+cursor:pointer;
+font-size:15px;
+}
+
+button:hover{
+background:#16a34a;
+}
+
+/* OUTPUT IMAGE */
+
+canvas{
+margin-top:20px;
+border-radius:10px;
+border:2px solid white;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="profile-panel">
+
+<div class="profile-img"></div>
+
+<p><b>Name:</b> Student Name</p>
+<p><b>ID:</b> SRN00123</p>
+<p><b>Course:</b> B.Tech</p>
+
+</div>
+
+
+<div class="main">
+
+<h2>Face Capture System</h2>
+
+
+<div class="camera-box">
+
+<video id="video" autoplay muted></video>
+
+<div class="scan-frame">
+<div class="scan-line"></div>
+</div>
+
+</div>
+
+
+<div class="progress" id="progress">
+Waiting for face detection...
+</div>
+
+
+<button onclick="startCapture()">Start Multi-Angle Capture</button>
+
+<button onclick="captureSingle()">Capture Single Image</button>
+
+<button onclick="retryCapture()">Retry Capture</button>
+
+
+<div class="status" id="status"></div>
+
+
+<canvas id="outputCanvas"></canvas>
+
+
+</div>
+
+
+<script>
+
+const video=document.getElementById("video");
+
+const statusText=document.getElementById("status");
+
+const progressText=document.getElementById("progress");
+
+const canvas=document.getElementById("outputCanvas");
+
+const ctx=canvas.getContext("2d");
+
+
+let steps=[
+"Front View",
+"Left View",
+"Right View",
+"Top View"
+];
+
+let capturedImages=[];
+
+let currentStep=0;
+
+
+navigator.mediaDevices.getUserMedia({video:true})
+
+.then(stream=>{
+
+video.srcObject=stream;
+
+})
+
+.catch(()=>{
+
+statusText.innerText="Camera permission denied ❌";
+
+});
+
+
+
+Promise.all([
+
+faceapi.nets.tinyFaceDetector.loadFromUri(
+"https://cdn.jsdelivr.net/npm/face-api.js/models"
+)
+
+]).then(startDetection);
+
+
+
+function startDetection(){
+
+setInterval(async()=>{
+
+const detection=await faceapi.detectSingleFace(
+video,
+new faceapi.TinyFaceDetectorOptions()
+);
+
+if(detection){
+
+statusText.innerText="Face detected ✅ Ready";
+
+}else{
+
+statusText.innerText="No face detected ❌ Adjust position";
+
+}
+
+},1000);
+
+}
+
+
+
+function startCapture(){
+
+currentStep=0;
+
+capturedImages=[];
+
+captureNext();
+
+}
+
+
+
+function captureNext(){
+
+if(currentStep>=steps.length){
+
+statusText.innerText="All face angles captured successfully ✅";
+
+progressText.innerText="Dataset ready";
+
+console.log(capturedImages);
+
+return;
+
+}
+
+
+progressText.innerText="Capturing "+steps[currentStep];
+
+
+setTimeout(()=>{
+
+captureImage();
+
+statusText.innerText=steps[currentStep]+" captured ✅";
+
+currentStep++;
+
+setTimeout(captureNext,1500);
+
+},2000);
+
+}
+
+
+
+function captureSingle(){
+
+canvas.width=video.videoWidth;
+
+canvas.height=video.videoHeight;
+
+ctx.drawImage(video,0,0);
+
+statusText.innerText="Single face image captured ✅";
+
+}
+
+
+
+function captureImage(){
+
+const tempCanvas=document.createElement("canvas");
+
+tempCanvas.width=video.videoWidth;
+
+tempCanvas.height=video.videoHeight;
+
+const tempCtx=tempCanvas.getContext("2d");
+
+tempCtx.drawImage(video,0,0);
+
+capturedImages.push(tempCanvas.toDataURL("image/png"));
+
+}
+
+
+
+function retryCapture(){
+
+statusText.innerText="Restarting capture...";
+
+startCapture();
+
+}
+
+</script>
+
+
+</body>
+
+</html>
