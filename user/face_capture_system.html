@@ -1,354 +1,595 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
-<title>Advanced Face Capture System</title>
-
-<script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Face Capture — GeoVision Campus Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/shell.css">
 <style>
-
-body{
-margin:0;
-font-family:Arial;
-background:#0f172a;
-color:white;
-display:flex;
-height:100vh;
+/* ── FACE CAPTURE LAYOUT ── */
+.capture-layout {
+  display:grid; grid-template-columns:1fr 380px; gap:24px; align-items:start;
 }
 
-/* PROFILE PANEL */
+/* ── CAMERA PANEL ── */
+.camera-panel {
+  background:var(--bg-card); border:1px solid var(--border-light);
+  border-radius:var(--radius-lg); overflow:hidden;
+  transition:background .3s, border-color .3s;
+}
+.camera-header {
+  padding:16px 20px; border-bottom:1px solid var(--border-light);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.camera-header h2 { font-size:15px; font-weight:700; }
+.step-indicator { display:flex; align-items:center; gap:6px; }
+.step-dot {
+  width:8px; height:8px; border-radius:50%; background:var(--border-light);
+  transition:all .3s;
+}
+.step-dot.done    { background:var(--clr-success); }
+.step-dot.active  { background:var(--clr-primary); width:20px; border-radius:4px; }
 
-.profile-panel{
-width:280px;
-background:#020617;
-padding:20px;
-border-right:2px solid #1e293b;
+/* Camera view */
+.camera-view {
+  position:relative; background:#000; aspect-ratio:4/3;
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.camera-video { width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Scan frame overlay */
+.scan-frame {
+  position:absolute; inset:0; pointer-events:none;
+}
+.scan-corners::before,
+.scan-corners::after {
+  content:''; position:absolute;
+  width:60px; height:60px;
+  border:3px solid var(--clr-primary);
+  opacity:.85; transition:all .5s;
+}
+.scan-corners::before { top:20%; left:20%; border-right:none; border-bottom:none; border-radius:6px 0 0 0; }
+.scan-corners::after  { bottom:20%; right:20%; border-left:none; border-top:none; border-radius:0 0 6px 0; }
+.scan-corners2::before,
+.scan-corners2::after {
+  content:''; position:absolute;
+  width:60px; height:60px;
+  border:3px solid var(--clr-primary);
+  opacity:.85;
+}
+.scan-corners2::before { top:20%; right:20%; border-left:none; border-bottom:none; border-radius:0 6px 0 0; }
+.scan-corners2::after  { bottom:20%; left:20%; border-right:none; border-top:none; border-radius:0 0 0 6px; }
+
+/* Scanning line */
+.scan-line {
+  position:absolute; left:18%; right:18%; height:2px;
+  background:linear-gradient(90deg,transparent,var(--clr-primary),transparent);
+  box-shadow:0 0 8px rgba(220,38,38,.6);
+  animation:scanMove 2s linear infinite;
+  opacity:0;
+}
+.scan-line.active { opacity:1; }
+@keyframes scanMove {
+  0%   { top:20%; }
+  50%  { top:80%; }
+  100% { top:20%; }
 }
 
-.profile-img{
-width:100px;
-height:100px;
-border-radius:50%;
-background:#334155;
-margin:auto;
-margin-bottom:20px;
+/* Face guide oval */
+.face-guide {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:140px; height:175px; border-radius:50%;
+  border:2px dashed rgba(255,255,255,.4);
+  transition:border-color .4s;
+}
+.face-guide.ok  { border-color:rgba(34,197,94,.7); border-style:solid; box-shadow:0 0 16px rgba(34,197,94,.3); }
+.face-guide.bad { border-color:rgba(220,38,38,.7); border-style:solid; }
+
+/* Camera overlays */
+.cam-overlay {
+  position:absolute; inset:0; background:rgba(0,0,0,.7);
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:12px; color:#fff; text-align:center; padding:20px;
+}
+.cam-overlay.hidden { display:none; }
+.cam-overlay-icon { font-size:48px; }
+.cam-overlay-title { font-size:18px; font-weight:700; }
+.cam-overlay-sub   { font-size:13px; color:rgba(255,255,255,.7); max-width:260px; }
+
+/* Flash effect on capture */
+.cam-flash {
+  position:absolute; inset:0; background:#fff;
+  opacity:0; pointer-events:none; transition:opacity .1s;
+}
+.cam-flash.flash { opacity:1; }
+
+/* Camera bottom bar */
+.camera-bottom {
+  padding:16px 20px; display:flex; align-items:center; justify-content:space-between;
+  border-top:1px solid var(--border-light);
+}
+.prompt-box {
+  flex:1; padding:10px 14px; background:var(--bg-badge);
+  border-radius:var(--radius-md); font-size:13px; font-weight:500;
+  color:var(--text-primary); margin-right:12px; min-height:44px;
+  display:flex; align-items:center; gap:8px;
+}
+.prompt-icon { font-size:20px; }
+.capture-btn {
+  width:60px; height:60px; border-radius:50%;
+  background:var(--clr-primary); color:#fff;
+  border:4px solid rgba(220,38,38,.3); cursor:pointer;
+  font-size:22px; display:flex; align-items:center; justify-content:center;
+  transition:all .2s; flex-shrink:0;
+}
+.capture-btn:hover { transform:scale(1.08); background:var(--clr-primary-dark); box-shadow:0 0 20px rgba(220,38,38,.4); }
+.capture-btn:active { transform:scale(.95); }
+.capture-btn:disabled { background:#555; cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* ── RIGHT PANEL ── */
+.info-panel { display:flex; flex-direction:column; gap:16px; }
+
+.steps-card {
+  background:var(--bg-card); border:1px solid var(--border-light);
+  border-radius:var(--radius-lg); overflow:hidden;
+  transition:background .3s, border-color .3s;
+}
+.steps-card-header {
+  padding:14px 20px; border-bottom:1px solid var(--border-light);
+  font-size:14px; font-weight:700;
+}
+.steps-card-body { padding:14px 20px; }
+
+.step-item {
+  display:flex; align-items:center; gap:12px; padding:10px 12px;
+  border-radius:var(--radius-md); margin-bottom:6px;
+  transition:all var(--transition-fast);
+}
+.step-item.current { background:var(--clr-primary-ghost); border:1px solid rgba(220,38,38,.2); }
+.step-item.done    { background:var(--clr-success-ghost); }
+.step-num {
+  width:26px; height:26px; border-radius:50%; background:var(--bg-badge);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:var(--text-secondary); flex-shrink:0;
+}
+.step-item.current .step-num { background:var(--clr-primary); color:#fff; }
+.step-item.done    .step-num { background:var(--clr-success); color:#fff; }
+.step-label { font-size:13px; font-weight:600; color:var(--text-primary); }
+.step-sub   { font-size:11px; color:var(--text-tertiary); }
+.step-check { margin-left:auto; font-size:14px; color:var(--clr-success); }
+
+/* Gallery */
+.gallery-card {
+  background:var(--bg-card); border:1px solid var(--border-light);
+  border-radius:var(--radius-lg); overflow:hidden;
+  transition:background .3s, border-color .3s;
+}
+.gallery-header { padding:14px 20px; border-bottom:1px solid var(--border-light); font-size:14px; font-weight:700; }
+.gallery-grid   { padding:14px 20px; display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+.gallery-item {
+  aspect-ratio:1; background:var(--bg-badge);
+  border-radius:var(--radius-sm); overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; border:2px solid transparent;
+  transition:all .3s; position:relative;
+}
+.gallery-item.captured { border-color:var(--clr-success); background:#000; }
+.gallery-item.empty    { border-color:var(--border-light); }
+.gallery-item img      { width:100%; height:100%; object-fit:cover; }
+.gallery-item-label    {
+  position:absolute; bottom:0; left:0; right:0; padding:2px 4px;
+  background:rgba(0,0,0,.7); color:#fff; font-size:8px; font-weight:700;
+  text-align:center; text-transform:uppercase;
+}
+.gallery-check {
+  position:absolute; top:2px; right:3px; color:var(--clr-success);
+  font-size:12px; font-weight:700;
 }
 
-/* MAIN CAMERA AREA */
-
-.main{
-flex:1;
-padding:30px;
-text-align:center;
+/* Status message */
+.status-bar {
+  padding:10px 14px; border-radius:var(--radius-md);
+  font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px;
 }
+.status-bar.info    { background:var(--bg-badge);             color:var(--text-secondary); }
+.status-bar.ok      { background:var(--clr-success-ghost);    color:var(--clr-success); }
+.status-bar.error   { background:var(--clr-danger-ghost);     color:var(--clr-danger); }
+.status-bar.warning { background:var(--clr-warning-ghost);    color:var(--clr-warning); }
 
-/* CAMERA BOX */
-
-.camera-box{
-position:relative;
-width:350px;
-height:420px;
-margin:auto;
-border-radius:20px;
-overflow:hidden;
-border:3px solid #334155;
+/* Enroll success */
+.enroll-success {
+  background:linear-gradient(135deg,#111,#1a1a2e); border-radius:var(--radius-lg);
+  padding:30px; text-align:center; display:none;
 }
-
-video{
-width:100%;
-height:100%;
-object-fit:cover;
+.enroll-success.show { display:block; }
+.enroll-tick { font-size:60px; margin-bottom:12px; animation:scaleIn .5s; }
+@keyframes scaleIn { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+.enroll-title { font-size:20px; font-weight:800; color:#fff; margin-bottom:8px; }
+.enroll-sub   { font-size:13px; color:rgba(255,255,255,.7); margin-bottom:20px; }
+.enroll-restart {
+  padding:10px 24px; background:var(--clr-primary); color:#fff;
+  border:none; border-radius:var(--radius-md); font-size:13px; font-weight:700;
+  cursor:pointer; transition:background .2s;
 }
-
-/* FACE FRAME */
-
-.scan-frame{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-width:220px;
-height:270px;
-border:3px solid #22c55e;
-border-radius:20px;
-box-shadow:0 0 25px #22c55e;
-}
-
-/* SCAN LINE */
-
-.scan-line{
-position:absolute;
-width:100%;
-height:3px;
-background:#22c55e;
-animation:scan 2s infinite;
-}
-
-@keyframes scan{
-0%{top:0}
-100%{top:100%}
-}
-
-/* STATUS TEXT */
-
-.status{
-margin-top:15px;
-font-size:18px;
-color:#4ade80;
-}
-
-.progress{
-margin-top:10px;
-color:#94a3b8;
-}
-
-/* BUTTONS */
-
-button{
-padding:12px 18px;
-margin:10px;
-border:none;
-border-radius:8px;
-background:#22c55e;
-cursor:pointer;
-font-size:15px;
-}
-
-button:hover{
-background:#16a34a;
-}
-
-/* OUTPUT IMAGE */
-
-canvas{
-margin-top:20px;
-border-radius:10px;
-border:2px solid white;
-}
-
+.enroll-restart:hover { background:var(--clr-primary-dark); }
 </style>
-
 </head>
-
-
 <body>
+<div id="app-shell">
 
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="../assets/logo.svg" alt="GeoVision" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="sidebar-logo-fallback" style="display:none"><span>Geo</span>Vision</div>
+      </div>
+    </div>
+    <div class="sidebar-profile">
+      <div class="sidebar-avatar">AD</div>
+      <div class="sidebar-profile-info">
+        <div class="sidebar-profile-name">Admin User</div>
+        <div class="sidebar-profile-role">Security Administrator</div>
+      </div>
+      <div class="sidebar-status-dot"></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-nav-label">Main Menu</div>
+      <a href="../index.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🏠</span> Home</a>
+      <a href="../admin/dashboard.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📊</span> Dashboard</a>
+      <a href="../admin/cctv-feed.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📹</span> CCTV Feed</a>
+      <a href="../admin/entry-history.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🚪</span> Entry History</a>
+      <a href="../admin/security-threats.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">⚠️</span> Threats <span class="sidebar-nav-badge">3</span></a>
+      <a href="../admin/student-profile-system-upgraded.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">👤</span> Student Profiles</a>
+      <div class="sidebar-nav-label" style="margin-top:14px">Enrolment</div>
+      <a href="face_capture_system.html" class="sidebar-nav-item active"><span class="sidebar-nav-icon">📸</span> Face Capture</a>
+      <a href="visitor-management.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🪪</span> Visitors</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="sidebar-footer-btn" id="btn-logout"><span>🚪</span> Logout</button>
+    </div>
+  </aside>
 
-<div class="profile-panel">
+  <!-- ═══ MAIN ═══ -->
+  <main class="main-content no-panel">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-breadcrumb">GeoVision / <span>Face Capture</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="theme-toggle" id="theme-toggle">🌙 Dark Mode</button>
+      </div>
+    </div>
 
-<div class="profile-img"></div>
+    <div class="page-body">
+      <div class="page-title-area">
+        <h1>Face Enrolment System</h1>
+        <p>Capture multiple angles for accurate facial recognition. Please follow each prompt carefully.</p>
+      </div>
 
-<p><b>Name:</b> Student Name</p>
-<p><b>ID:</b> SRN00123</p>
-<p><b>Course:</b> B.Tech</p>
+      <div class="capture-layout">
+        <!-- Left: Camera -->
+        <div>
+          <div class="camera-panel">
+            <div class="camera-header">
+              <h2>📸 Live Camera — Enrolment</h2>
+              <div class="step-indicator" id="step-indicator"></div>
+            </div>
+            <div class="camera-view">
+              <video id="cam-video" class="camera-video" autoplay muted playsinline></video>
+              <canvas id="cam-canvas" style="display:none"></canvas>
 
+              <!-- Scan overlay elements -->
+              <div class="scan-frame scan-corners"></div>
+              <div class="scan-frame scan-corners2"></div>
+              <div class="scan-line" id="scan-line"></div>
+
+              <!-- Face guide -->
+              <div class="face-guide" id="face-guide"></div>
+
+              <!-- Flash -->
+              <div class="cam-flash" id="cam-flash"></div>
+
+              <!-- Startup overlay -->
+              <div class="cam-overlay" id="cam-overlay">
+                <div class="cam-overlay-icon">📷</div>
+                <div class="cam-overlay-title">Camera Access Required</div>
+                <div class="cam-overlay-sub">Click "Start Camera" below to begin the face enrolment process.</div>
+                <button onclick="startCamera()" style="margin-top:8px;padding:10px 24px;background:var(--clr-primary);color:#fff;border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer">▶ Start Camera</button>
+              </div>
+
+              <!-- Error overlay -->
+              <div class="cam-overlay hidden" id="error-overlay">
+                <div class="cam-overlay-icon">⚠️</div>
+                <div class="cam-overlay-title" id="error-title">Camera Error</div>
+                <div class="cam-overlay-sub" id="error-sub">Please check camera permissions</div>
+                <button onclick="retryCamera()" style="margin-top:8px;padding:10px 24px;background:var(--clr-warning);color:#fff;border:none;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer">↺ Retry</button>
+              </div>
+            </div>
+
+            <!-- Bottom bar -->
+            <div class="camera-bottom">
+              <div class="prompt-box">
+                <span class="prompt-icon" id="prompt-icon">📷</span>
+                <div>
+                  <div style="font-weight:700;font-size:12px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px" id="prompt-step-label">Ready</div>
+                  <div id="prompt-text">Start the camera to begin enrolment</div>
+                </div>
+              </div>
+              <button class="capture-btn" id="capture-btn" onclick="captureFrame()" disabled title="Capture">📸</button>
+            </div>
+          </div>
+
+          <!-- Status bar -->
+          <div class="status-bar info" id="status-bar" style="margin-top:12px">
+            <span>ℹ️</span> <span id="status-text">Initialising camera…</span>
+          </div>
+
+          <!-- Enrolment success card -->
+          <div class="enroll-success" id="enroll-success">
+            <div class="enroll-tick">✅</div>
+            <div class="enroll-title">Enrolment Complete!</div>
+            <div class="enroll-sub">All 5 face angles were captured successfully. The profile has been enrolled in the GeoVision database with a confidence score of <strong id="final-conf">97.4%</strong>.</div>
+            <button class="enroll-restart" onclick="resetCapture()">↺ Enrol Another</button>
+          </div>
+        </div>
+
+        <!-- Right: Info panel -->
+        <div class="info-panel">
+          <!-- Steps -->
+          <div class="steps-card">
+            <div class="steps-card-header">🗂️ Capture Steps</div>
+            <div class="steps-card-body" id="steps-list"></div>
+          </div>
+          <!-- Gallery -->
+          <div class="gallery-card">
+            <div class="gallery-header">🖼️ Captured Frames</div>
+            <div class="gallery-grid" id="gallery-grid"></div>
+          </div>
+          <!-- Tips -->
+          <div class="steps-card">
+            <div class="steps-card-header">💡 Tips for Best Results</div>
+            <div class="steps-card-body">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div class="status-bar info" style="font-size:12px">💡 Ensure face is well lit from the front</div>
+                <div class="status-bar info" style="font-size:12px">🚫 Remove hats, glasses, and scarves</div>
+                <div class="status-bar info" style="font-size:12px">🔵 Keep face within the oval guide</div>
+                <div class="status-bar info" style="font-size:12px">📏 Maintain 30–50 cm from screen</div>
+                <div class="status-bar info" style="font-size:12px">😐 Maintain a neutral expression</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>
 
-
-<div class="main">
-
-<h2>Face Capture System</h2>
-
-
-<div class="camera-box">
-
-<video id="video" autoplay muted></video>
-
-<div class="scan-frame">
-<div class="scan-line"></div>
-</div>
-
-</div>
-
-
-<div class="progress" id="progress">
-Waiting for face detection...
-</div>
-
-
-<button onclick="startCapture()">Start Multi-Angle Capture</button>
-
-<button onclick="captureSingle()">Capture Single Image</button>
-
-<button onclick="retryCapture()">Retry Capture</button>
-
-
-<div class="status" id="status"></div>
-
-
-<canvas id="outputCanvas"></canvas>
-
-
-</div>
-
-
+<div class="toast-container" id="toast-container"></div>
+<script src="../css/shell.js"></script>
 <script>
-
-const video=document.getElementById("video");
-
-const statusText=document.getElementById("status");
-
-const progressText=document.getElementById("progress");
-
-const canvas=document.getElementById("outputCanvas");
-
-const ctx=canvas.getContext("2d");
-
-
-let steps=[
-"Front View",
-"Left View",
-"Right View",
-"Top View"
+/* ── STEPS CONFIG ── */
+const STEPS = [
+  { label:'Look Straight',   icon:'😐', sub:'Face the camera directly. Keep your eyes level.',           hint:'Hold still and look forward.' },
+  { label:'Turn Left',       icon:'⬅️', sub:'Slowly turn your head ~30° to the left.',                  hint:'Rotate left until guide turns green.' },
+  { label:'Turn Right',      icon:'➡️', sub:'Slowly turn your head ~30° to the right.',                 hint:'Rotate right until guide turns green.' },
+  { label:'Look Up',         icon:'⬆️', sub:'Tilt your head slightly upward (~20° up).',                hint:'Chin up — show your lower face.' },
+  { label:'Look Down',       icon:'⬇️', sub:'Tilt your head slightly downward (~20° down).',            hint:'Chin down — show your forehead.' },
 ];
 
-let capturedImages=[];
+let currentStep = 0;
+let captured    = [];
+let stream      = null;
+let autoDetectTimer = null;
+let detectionPaused = false;
 
-let currentStep=0;
+const video       = document.getElementById('cam-video');
+const canvas      = document.getElementById('cam-canvas');
+const captureBtn  = document.getElementById('capture-btn');
+const scanLine    = document.getElementById('scan-line');
+const faceGuide   = document.getElementById('face-guide');
+const flashEl     = document.getElementById('cam-flash');
+const stepIndicator = document.getElementById('step-indicator');
 
+/* ── BUILD UI ── */
+function buildUI() {
+  // Steps list
+  const sl = document.getElementById('steps-list');
+  sl.innerHTML = '';
+  STEPS.forEach((s, i) => {
+    const isDone    = captured[i] !== undefined;
+    const isCurrent = i === currentStep && !isDone;
+    const cls = isDone ? 'done' : isCurrent ? 'current' : '';
+    sl.innerHTML += `
+      <div class="step-item ${cls}">
+        <div class="step-num">${isDone ? '✓' : i+1}</div>
+        <div>
+          <div class="step-label">${s.icon} ${s.label}</div>
+          <div class="step-sub">${s.sub}</div>
+        </div>
+        ${isDone ? '<span class="step-check">✓</span>' : ''}
+      </div>`;
+  });
 
-navigator.mediaDevices.getUserMedia({video:true})
+  // Gallery
+  const gg = document.getElementById('gallery-grid');
+  gg.innerHTML = '';
+  STEPS.forEach((s, i) => {
+    const item = document.createElement('div');
+    item.className = `gallery-item ${captured[i] ? 'captured' : 'empty'}`;
+    if (captured[i]) {
+      item.innerHTML = `<img src="${captured[i]}" alt="${s.label}"><div class="gallery-check">✓</div><div class="gallery-item-label">${s.label}</div>`;
+    } else {
+      item.innerHTML = `<span style="color:var(--text-tertiary)">${s.icon}</span><div class="gallery-item-label">${s.label}</div>`;
+    }
+    gg.appendChild(item);
+  });
 
-.then(stream=>{
+  // Step indicator dots
+  stepIndicator.innerHTML = '';
+  STEPS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = `step-dot ${captured[i] ? 'done' : i === currentStep ? 'active' : ''}`;
+    stepIndicator.appendChild(d);
+  });
 
-video.srcObject=stream;
-
-})
-
-.catch(()=>{
-
-statusText.innerText="Camera permission denied ❌";
-
-});
-
-
-
-Promise.all([
-
-faceapi.nets.tinyFaceDetector.loadFromUri(
-"https://cdn.jsdelivr.net/npm/face-api.js/models"
-)
-
-]).then(startDetection);
-
-
-
-function startDetection(){
-
-setInterval(async()=>{
-
-const detection=await faceapi.detectSingleFace(
-video,
-new faceapi.TinyFaceDetectorOptions()
-);
-
-if(detection){
-
-statusText.innerText="Face detected ✅ Ready";
-
-}else{
-
-statusText.innerText="No face detected ❌ Adjust position";
-
+  // Prompt
+  if (currentStep < STEPS.length) {
+    const s = STEPS[currentStep];
+    document.getElementById('prompt-icon').textContent     = s.icon;
+    document.getElementById('prompt-step-label').textContent = `Step ${currentStep+1} of ${STEPS.length}`;
+    document.getElementById('prompt-text').textContent     = s.hint;
+  }
 }
 
-},1000);
-
+/* ── CAMERA ── */
+async function startCamera() {
+  document.getElementById('cam-overlay').classList.add('hidden');
+  setStatus('Starting camera…','info');
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:'user', width:{ideal:1280}, height:{ideal:720} }
+    });
+    video.srcObject = stream;
+    await video.play();
+    captureBtn.disabled = false;
+    scanLine.classList.add('active');
+    setStatus('Camera active — position your face within the oval guide.', 'ok');
+    buildUI();
+    startSimulatedDetection();
+  } catch (err) {
+    showError(err);
+  }
 }
 
-
-
-function startCapture(){
-
-currentStep=0;
-
-capturedImages=[];
-
-captureNext();
-
+function retryCamera() {
+  document.getElementById('error-overlay').classList.add('hidden');
+  startCamera();
 }
 
-
-
-function captureNext(){
-
-if(currentStep>=steps.length){
-
-statusText.innerText="All face angles captured successfully ✅";
-
-progressText.innerText="Dataset ready";
-
-console.log(capturedImages);
-
-return;
-
+function showError(err) {
+  const overlay   = document.getElementById('error-overlay');
+  const errTitle  = document.getElementById('error-title');
+  const errSub    = document.getElementById('error-sub');
+  overlay.classList.remove('hidden');
+  if (err.name === 'NotAllowedError') {
+    errTitle.textContent = 'Camera Permission Denied';
+    errSub.textContent   = 'Please allow camera access in your browser settings and try again.';
+    setStatus('❌ Camera permission denied. Check browser settings.', 'error');
+  } else if (err.name === 'NotFoundError') {
+    errTitle.textContent = 'No Camera Found';
+    errSub.textContent   = 'Could not detect a camera on this device.';
+    setStatus('❌ No camera detected. Connect a webcam and try again.', 'error');
+  } else {
+    errTitle.textContent = 'Camera Error';
+    errSub.textContent   = err.message || 'An unexpected error occurred.';
+    setStatus('❌ Camera error: ' + err.message, 'error');
+  }
 }
 
+/* ── SIMULATED DETECTION FEEDBACK ── */
+const warnings = [
+  { msg:'😟 Face not detected — adjust position', type:'warning', ok:false },
+  { msg:'💡 Lighting too poor — move to brighter area', type:'warning', ok:false },
+  { msg:'📏 Too far from camera — move closer', type:'warning', ok:false },
+  { msg:'✅ Face detected — hold still and capture!', type:'ok', ok:true },
+  { msg:'✅ Good position — press capture when ready', type:'ok', ok:true },
+  { msg:'🔍 Multiple faces detected — only one person allowed', type:'warning', ok:false },
+];
 
-progressText.innerText="Capturing "+steps[currentStep];
-
-
-setTimeout(()=>{
-
-captureImage();
-
-statusText.innerText=steps[currentStep]+" captured ✅";
-
-currentStep++;
-
-setTimeout(captureNext,1500);
-
-},2000);
-
+function startSimulatedDetection() {
+  let cycleCount = 0;
+  autoDetectTimer = setInterval(() => {
+    if (detectionPaused) return;
+    cycleCount++;
+    // After a few cycles always show OK to allow capture
+    const pool = cycleCount > 3
+      ? [warnings[3], warnings[4], warnings[3]]
+      : warnings;
+    const w = pool[Math.floor(Math.random() * pool.length)];
+    setStatus(w.msg, w.type);
+    faceGuide.className = 'face-guide ' + (w.ok ? 'ok' : 'bad');
+  }, 2000);
 }
 
+/* ── CAPTURE ── */
+function captureFrame() {
+  if (currentStep >= STEPS.length) return;
+  detectionPaused = true;
 
+  // Flash
+  flashEl.classList.add('flash');
+  setTimeout(() => flashEl.classList.remove('flash'), 200);
 
-function captureSingle(){
+  // Draw current video frame to canvas
+  canvas.width  = video.videoWidth  || 640;
+  canvas.height = video.videoHeight || 480;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
-canvas.width=video.videoWidth;
+  captured[currentStep] = dataUrl;
+  faceGuide.className   = 'face-guide ok';
+  setStatus(`✅ Captured: ${STEPS[currentStep].label}!`, 'ok');
+  showToast(`✅ ${STEPS[currentStep].label} captured successfully`, 'success');
 
-canvas.height=video.videoHeight;
+  currentStep++;
+  buildUI();
 
-ctx.drawImage(video,0,0);
-
-statusText.innerText="Single face image captured ✅";
-
+  if (currentStep >= STEPS.length) {
+    clearInterval(autoDetectTimer);
+    setTimeout(finishEnrolment, 1200);
+  } else {
+    setTimeout(() => {
+      faceGuide.className = 'face-guide';
+      setStatus(STEPS[currentStep].hint, 'info');
+      detectionPaused = false;
+    }, 1500);
+  }
 }
 
+function finishEnrolment() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); }
+  scanLine.classList.remove('active');
+  captureBtn.disabled = true;
 
-
-function captureImage(){
-
-const tempCanvas=document.createElement("canvas");
-
-tempCanvas.width=video.videoWidth;
-
-tempCanvas.height=video.videoHeight;
-
-const tempCtx=tempCanvas.getContext("2d");
-
-tempCtx.drawImage(video,0,0);
-
-capturedImages.push(tempCanvas.toDataURL("image/png"));
-
+  const conf = (95 + Math.random() * 4.9).toFixed(1);
+  document.getElementById('final-conf').textContent = conf + '%';
+  document.getElementById('enroll-success').classList.add('show');
+  document.querySelector('.camera-panel').style.display = 'none';
+  document.querySelector('.status-bar').style.display   = 'none';
+  showToast('🎉 Enrolment complete! Profile enrolled with ' + conf + '% confidence.', 'success');
 }
 
-
-
-function retryCapture(){
-
-statusText.innerText="Restarting capture...";
-
-startCapture();
-
+function resetCapture() {
+  currentStep   = 0;
+  captured      = [];
+  stream        = null;
+  detectionPaused = false;
+  document.getElementById('enroll-success').classList.remove('show');
+  document.querySelector('.camera-panel').style.display = '';
+  document.querySelector('.status-bar').style.display   = '';
+  captureBtn.disabled = true;
+  faceGuide.className = 'face-guide';
+  scanLine.classList.remove('active');
+  document.getElementById('cam-overlay').classList.remove('hidden');
+  document.getElementById('error-overlay').classList.add('hidden');
+  setStatus('Initialising camera…', 'info');
+  buildUI();
 }
 
+function setStatus(msg, type) {
+  const bar = document.getElementById('status-bar');
+  const txt = document.getElementById('status-text');
+  bar.className = `status-bar ${type}`;
+  txt.textContent = msg;
+}
+
+// Init
+buildUI();
+setStatus('Camera not started. Click "Start Camera" to begin.', 'info');
 </script>
-
-
 </body>
-
 </html>

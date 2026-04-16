@@ -1,69 +1,493 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="../css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard — GeoVision Campus Security</title>
+<meta name="description" content="GeoVision Campus Security — Real-time command center dashboard">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/shell.css">
+<style>
+/* ── DASHBOARD-SPECIFIC ── */
+.cctv-section {
+  background:var(--bg-card); border:1px solid var(--border-light);
+  border-radius:var(--radius-lg); overflow:hidden; margin-bottom:20px;
+  transition:background .3s, border-color .3s;
+}
+.cctv-grid {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:14px; padding:20px;
+}
+.cctv-cell {
+  background:#111; border-radius:var(--radius-md); aspect-ratio:16/9;
+  overflow:hidden; position:relative; cursor:pointer; transition:all var(--transition-fast);
+}
+.cctv-cell:hover { transform:scale(1.02); box-shadow:var(--shadow-md); }
+.cctv-cell-bg {
+  width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+  font-size:28px; background:linear-gradient(135deg,#1a1a1a,#0d0d0d);
+}
+.cctv-label {
+  position:absolute; bottom:0; left:0; right:0; padding:6px 10px;
+  background:linear-gradient(to top,rgba(0,0,0,.85),transparent);
+  color:#fff; font-size:10px; font-weight:600;
+}
+.cctv-live-dot {
+  position:absolute; top:8px; left:8px; display:flex; align-items:center; gap:4px;
+  font-size:9px; font-weight:700; color:#fff; text-transform:uppercase;
+}
+.cctv-cell.offline .live-dot  { background:#666; animation:none; }
+.cctv-cell.offline .cctv-live-dot::after { content:'OFFLINE'; font-size:9px; margin-left:2px; }
+.cctv-cell.offline .live-text { display:none; }
+
+/* ── PANEL LOCKDOWN REPLACEMENT ── */
+.panel-bottom { padding:20px; }
+.view-full-btn {
+  width:100%; padding:12px; background:var(--clr-primary); color:#fff;
+  font-size:13px; font-weight:700; border-radius:var(--radius-md);
+  cursor:pointer; transition:all var(--transition-fast);
+  display:flex; align-items:center; justify-content:center; gap:8px; border:none;
+}
+.view-full-btn:hover { background:var(--clr-primary-dark); transform:translateY(-1px); }
+
+/* New-entry flash animation */
+@keyframes newEntry {
+  0%   { background:rgba(220,38,38,.15); }
+  100% { background:transparent; }
+}
+.activity-item.new-flash { animation:newEntry 1.5s ease forwards; }
+</style>
 </head>
 <body>
+<div id="app-shell">
 
-    <div class="page-container">
-        <div class="page-header">
-            <h1>Admin Dashboard</h1>
-            <p>Campus Security &amp; Facial Recognition System</p>
-        </div>
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="../assets/logo.svg" alt="GeoVision" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="sidebar-logo-fallback" style="display:none"><span>Geo</span>Vision</div>
+      </div>
+    </div>
+    <div class="sidebar-profile">
+      <div class="sidebar-avatar">AD</div>
+      <div class="sidebar-profile-info">
+        <div class="sidebar-profile-name">Admin User</div>
+        <div class="sidebar-profile-role">Security Administrator</div>
+      </div>
+      <div class="sidebar-status-dot"></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-nav-label">Main Menu</div>
+      <a href="../index.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">🏠</span> Home
+      </a>
+      <a href="dashboard.html" class="sidebar-nav-item active">
+        <span class="sidebar-nav-icon">📊</span> Dashboard
+      </a>
+      <a href="cctv-feed.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">📹</span> CCTV Feed
+      </a>
+      <a href="entry-history.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">🚪</span> Entry History
+      </a>
+      <a href="security-threats.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">⚠️</span> Threats
+        <span class="sidebar-nav-badge" id="threat-badge">3</span>
+      </a>
+      <a href="student-profile-system-upgraded.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">👤</span> Student Profiles
+      </a>
+      <div class="sidebar-nav-label" style="margin-top:14px">Enrolment</div>
+      <a href="../user/face_capture_system.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">📸</span> Face Capture
+      </a>
+      <a href="../user/visitor-management.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">🪪</span> Visitors
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="sidebar-footer-btn" id="btn-logout">
+        <span>🚪</span> Logout
+      </button>
+    </div>
+  </aside>
 
-        <nav>
-            <a href="../index.html">Logout</a>
-            <a href="cctv-feed.html">CCTV Feed</a>
-            <a href="entry-history.html">Entry History</a>
-            <a href="security-threats.html">Security Threats</a>
-        </nav>
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <main class="main-content">
 
-        <div class="section">
-            <h2>Quick Stats</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Metric</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Total Registered Users</td>
-                        <td>[ Placeholder ]</td>
-                    </tr>
-                    <tr>
-                        <td>Today's Entries</td>
-                        <td>[ Placeholder ]</td>
-                    </tr>
-                    <tr>
-                        <td>Active CCTV Feeds</td>
-                        <td>[ Placeholder ]</td>
-                    </tr>
-                    <tr>
-                        <td>Unresolved Threats</td>
-                        <td>[ Placeholder ]</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="section">
-            <h2>Navigation</h2>
-            <div>
-                <a href="cctv-feed.html" class="btn">View CCTV Feed</a>
-                <a href="entry-history.html" class="btn">View Entry History</a>
-                <a href="security-threats.html" class="btn">View Security Threats</a>
-            </div>
-        </div>
-
-        <div class="page-footer">
-            <p>Campus Security System &copy; 2026 — Admin Panel</p>
-        </div>
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-breadcrumb">GeoVision / <span>Dashboard</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn" id="btn-export">⬇ Export</button>
+        <button class="topbar-btn" id="btn-refresh">↺ Refresh</button>
+        <button class="theme-toggle" id="theme-toggle">🌙 Dark Mode</button>
+      </div>
     </div>
 
+    <!-- Body -->
+    <div class="page-body">
+
+      <div class="page-title-area">
+        <h1>Security Command Centre</h1>
+        <p>Real-time overview of campus security, entries, threats, and system health.</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card" style="--card-color:#111">
+          <div class="stat-card-header">
+            <div class="stat-card-icon" style="background:#f1f1f1;color:#111">🚪</div>
+            <span class="stat-card-trend up" id="stat-trend-entries">▲ 12%</span>
+          </div>
+          <div class="stat-card-value" id="stat-entries">247</div>
+          <div class="stat-card-label">Total Entries Today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon" style="background:var(--clr-danger-ghost);color:var(--clr-primary)">🚨</div>
+            <span class="stat-card-trend down" id="stat-trend-threats">▲ 3 New</span>
+          </div>
+          <div class="stat-card-value" id="stat-threats">3</div>
+          <div class="stat-card-label">Active Threats</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon" style="background:#f1f1f1;color:#444">📹</div>
+            <span class="stat-card-trend neutral">11/12</span>
+          </div>
+          <div class="stat-card-value">11</div>
+          <div class="stat-card-label">Active Cameras</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon" style="background:var(--clr-success-ghost);color:var(--clr-success)">👥</div>
+            <span class="stat-card-trend up">▲ 8 New</span>
+          </div>
+          <div class="stat-card-value">1,842</div>
+          <div class="stat-card-label">Registered Profiles</div>
+        </div>
+      </div>
+
+      <!-- Threat Alerts + Live Feed -->
+      <div class="grid-2col">
+
+        <!-- Threat Alerts -->
+        <div class="section-card">
+          <div class="section-card-header">
+            <div class="section-card-header-left">
+              <span class="section-card-title">⚠️ Threat Alerts</span>
+              <span class="section-card-count red" id="threat-count">3 Active</span>
+            </div>
+            <a href="security-threats.html" class="section-link-btn">View All →</a>
+          </div>
+          <div class="section-card-body">
+            <div class="alert-list">
+              <div class="alert-item critical">
+                <div class="alert-icon">🚫</div>
+                <div class="alert-info">
+                  <div class="alert-title">Unknown face — North Gate</div>
+                  <div class="alert-meta">📍 Gate 1 · 09:42 AM · No match in database</div>
+                </div>
+                <span class="alert-badge badge-critical">Critical</span>
+              </div>
+              <div class="alert-item critical">
+                <div class="alert-icon">🚷</div>
+                <div class="alert-info">
+                  <div class="alert-title">Blacklisted individual — East Entrance</div>
+                  <div class="alert-meta">📍 Gate 3 · 10:15 AM · ID: BL-00499</div>
+                </div>
+                <span class="alert-badge badge-critical">Critical</span>
+              </div>
+              <div class="alert-item warning">
+                <div class="alert-icon">🚶‍♂️</div>
+                <div class="alert-info">
+                  <div class="alert-title">Tailgating — Library Entrance</div>
+                  <div class="alert-meta">📍 Gate 5 · 11:03 AM · 3 people on 1 scan</div>
+                </div>
+                <span class="alert-badge badge-warning">Warning</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Activity Feed -->
+        <div class="section-card">
+          <div class="section-card-header">
+            <div class="section-card-header-left">
+              <span class="section-card-title">🟢 Live Activity Feed</span>
+              <span class="section-card-count">Real-time</span>
+            </div>
+            <a href="entry-history.html" class="section-link-btn">Full Log →</a>
+          </div>
+          <div class="section-card-body">
+            <div class="activity-list" id="activity-list"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CCTV -->
+      <div class="cctv-section">
+        <div class="section-card-header">
+          <div class="section-card-header-left">
+            <span class="section-card-title">📹 Live Camera Preview</span>
+            <span class="section-card-count">11 / 12 Online</span>
+          </div>
+          <a href="cctv-feed.html" class="section-link-btn">Full Feed →</a>
+        </div>
+        <div class="cctv-grid">
+          <div class="cctv-cell">
+            <div class="cctv-cell-bg">🏛️</div>
+            <div class="cctv-live-dot"><div class="live-dot"></div><span class="live-text">LIVE</span></div>
+            <div class="cctv-label">📍 Main Gate — CAM-01</div>
+          </div>
+          <div class="cctv-cell">
+            <div class="cctv-cell-bg">📚</div>
+            <div class="cctv-live-dot"><div class="live-dot"></div><span class="live-text">LIVE</span></div>
+            <div class="cctv-label">📍 Library — CAM-02</div>
+          </div>
+          <div class="cctv-cell">
+            <div class="cctv-cell-bg">🏢</div>
+            <div class="cctv-live-dot"><div class="live-dot"></div><span class="live-text">LIVE</span></div>
+            <div class="cctv-label">📍 Admin Block — CAM-05</div>
+          </div>
+          <div class="cctv-cell offline">
+            <div class="cctv-cell-bg" style="filter:grayscale(1)">❌</div>
+            <div class="cctv-live-dot"><div class="live-dot"></div></div>
+            <div class="cctv-label">📍 Sports Complex — CAM-09 · OFFLINE</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Health -->
+      <div class="section-card">
+        <div class="section-card-header">
+          <span class="section-card-title">⚙️ System Health</span>
+        </div>
+        <div class="section-card-body">
+          <div class="health-grid">
+            <div class="health-card">
+              <div class="health-card-top">
+                <span class="health-card-label">AI Recognition</span>
+                <div class="health-status-dot online"></div>
+              </div>
+              <div class="health-bar-track"><div class="health-bar-fill green" style="width:91%"></div></div>
+              <div class="health-card-value">91%</div>
+              <div class="health-card-sub">CPU Load · Online</div>
+            </div>
+            <div class="health-card">
+              <div class="health-card-top">
+                <span class="health-card-label">Database</span>
+                <div class="health-status-dot online"></div>
+              </div>
+              <div class="health-bar-track"><div class="health-bar-fill dark" style="width:68%"></div></div>
+              <div class="health-card-value">68%</div>
+              <div class="health-card-sub">Storage Used · Online</div>
+            </div>
+            <div class="health-card">
+              <div class="health-card-top">
+                <span class="health-card-label">CCTV Network</span>
+                <div class="health-status-dot degraded"></div>
+              </div>
+              <div class="health-bar-track"><div class="health-bar-fill yellow" style="width:92%"></div></div>
+              <div class="health-card-value">11 / 12</div>
+              <div class="health-card-sub">Cameras Active · 1 Offline</div>
+            </div>
+            <div class="health-card">
+              <div class="health-card-top">
+                <span class="health-card-label">Gate Control</span>
+                <div class="health-status-dot online"></div>
+              </div>
+              <div class="health-bar-track"><div class="health-bar-fill green" style="width:100%"></div></div>
+              <div class="health-card-value">8 / 8</div>
+              <div class="health-card-sub">Gates Operational</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-body -->
+  </main>
+
+  <!-- ═══════════════ RIGHT PANEL ═══════════════ -->
+  <aside class="right-panel">
+    <div class="panel-clock">
+      <div class="panel-clock-time" id="live-clock">--:--:--</div>
+      <div class="panel-clock-date" id="live-date">Loading...</div>
+      <div class="panel-live-badge"><div class="live-dot"></div> MONITORING LIVE</div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">Threat Summary</div>
+      <div class="threat-summary-item">
+        <div class="threat-summary-left">
+          <div class="threat-summary-dot" style="background:var(--clr-danger)"></div>
+          <span class="threat-summary-name">Unauthorized Access</span>
+        </div>
+        <span class="threat-summary-count red">2</span>
+      </div>
+      <div class="threat-summary-item">
+        <div class="threat-summary-left">
+          <div class="threat-summary-dot" style="background:var(--clr-warning)"></div>
+          <span class="threat-summary-name">Tailgating</span>
+        </div>
+        <span class="threat-summary-count">1</span>
+      </div>
+      <div class="threat-summary-item">
+        <div class="threat-summary-left">
+          <div class="threat-summary-dot" style="background:#666"></div>
+          <span class="threat-summary-name">Low Confidence</span>
+        </div>
+        <span class="threat-summary-count" id="low-conf-count">4</span>
+      </div>
+      <div class="threat-summary-item">
+        <div class="threat-summary-left">
+          <div class="threat-summary-dot" style="background:var(--clr-danger)"></div>
+          <span class="threat-summary-name">Blacklisted</span>
+        </div>
+        <span class="threat-summary-count red">1</span>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">Recent Scans</div>
+      <div id="recent-scans"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">Today at a Glance</div>
+      <div class="threat-summary-item">
+        <div class="threat-summary-left">
+          <div class="threat-summary-dot" style="background:#111"></div>
+          <span class="threat-summary-name">Peak Hour</span>
+        </div>
+        <span class="threat-summary-count">09:00 – 10:00</span>
+      </div>
+      <div class="threat-summary-item">
+        <div class="threat-summary-left">
+          <div class="threat-summary-dot" style="background:#111"></div>
+          <span class="threat-summary-name">Busiest Gate</span>
+        </div>
+        <span class="threat-summary-count">Main Gate</span>
+      </div>
+      <div class="threat-summary-item">
+        <div class="threat-summary-left">
+          <div class="threat-summary-dot" style="background:var(--clr-success)"></div>
+          <span class="threat-summary-name">Avg Confidence</span>
+        </div>
+        <span class="threat-summary-count" id="avg-conf">96.3%</span>
+      </div>
+    </div>
+
+    <div class="panel-bottom">
+      <button class="view-full-btn" onclick="window.location.href='entry-history.html'">
+        📋 View Full Activity Log
+      </button>
+    </div>
+  </aside>
+
+</div><!-- /app-shell -->
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="../css/shell.js"></script>
+<script>
+/* ── SEED INITIAL FEED ── */
+const MAX_FEED = 6;
+let entryCount = 247;
+let exitCount  = 89;
+const confValues = [];
+
+function makeActivityItem(person, type) {
+  const gate = randomGate();
+  const conf = type === 'denied' ? randomLowConf() : randomConf();
+  const confClass = conf < 75 ? 'low' : type === 'denied' ? 'denied' : '';
+  const confColor = type === 'denied' ? 'var(--clr-danger)' : '';
+  const timeStr = fmtTime(new Date());
+
+  confValues.push(parseFloat(conf));
+  if (confValues.length > 20) confValues.shift();
+  const avg = (confValues.reduce((a,b)=>a+b,0)/confValues.length).toFixed(1);
+  const avgEl = document.getElementById('avg-conf');
+  if (avgEl) avgEl.textContent = avg + '%';
+
+  const typeLabel = type === 'exit' ? '↩ Exit' : type === 'denied' ? '🚫 Denied' : '→ Entry';
+
+  const el = document.createElement('div');
+  el.className = 'activity-item new-flash';
+  el.innerHTML = `
+    <div class="activity-avatar" style="background:linear-gradient(135deg,${person.color})">
+      ${person.initials}
+    </div>
+    <div class="activity-info">
+      <div class="activity-name">${person.name}</div>
+      <div class="activity-sub">${person.id} · ${gate} · ${timeStr}</div>
+    </div>
+    <div class="activity-right">
+      <div class="activity-conf ${confClass}" style="${confColor?'color:'+confColor:''}">${conf}%</div>
+      <div class="activity-time">${typeLabel}</div>
+    </div>`;
+  return el;
+}
+
+function addToFeed(person, type) {
+  const list = document.getElementById('activity-list');
+  const item = makeActivityItem(person, type);
+  list.insertBefore(item, list.firstChild);
+  while (list.children.length > MAX_FEED) list.removeChild(list.lastChild);
+
+  // Update recent scans panel
+  updateRecentScans(person);
+}
+
+function updateRecentScans(person) {
+  const container = document.getElementById('recent-scans');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.className = 'scan-item';
+  el.innerHTML = `
+    <div class="scan-avatar" style="background:linear-gradient(135deg,${person.color})">${person.initials}</div>
+    <div class="scan-info">
+      <div class="scan-name">${person.name}</div>
+      <div class="scan-gate">${randomGate()} · ${fmtTime(new Date())}</div>
+    </div>
+    <span class="scan-conf">${randomConf()}%</span>`;
+  container.insertBefore(el, container.firstChild);
+  while (container.children.length > 5) container.removeChild(container.lastChild);
+}
+
+// Seed initial
+const seedPeople = [
+  PEOPLE[0], PEOPLE[1], PEOPLE[2], PEOPLE[3], PEOPLE[4]
+];
+seedPeople.reverse().forEach((p,i) => {
+  const types = ['entry','entry','entry','exit','entry'];
+  setTimeout(() => addToFeed(p, types[i]), i * 50);
+});
+
+// Live simulation — entry/exit every 3-6 seconds
+function simulateLiveEvent() {
+  const person = randomPerson();
+  const r = Math.random();
+  let type;
+  if (r < 0.65) { type = 'entry'; entryCount++; }
+  else if (r < 0.9) { type = 'exit'; exitCount++; }
+  else { type = 'denied'; }
+
+  addToFeed(person, type);
+  document.getElementById('stat-entries').textContent = entryCount.toLocaleString();
+
+  if (type === 'entry') showToast(`New entry: ${person.name} at ${randomGate()}`, 'info');
+  else if (type === 'exit') showToast(`Exit: ${person.name}`, 'info');
+  else showToast(`⚠️ Access denied for unknown individual at ${randomGate()}`, 'error');
+}
+
+setInterval(simulateLiveEvent, 4000 + Math.random() * 3000);
+</script>
 </body>
 </html>
