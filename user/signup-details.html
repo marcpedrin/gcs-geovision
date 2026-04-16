@@ -1,48 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Enter Details</title>
-    <link rel="stylesheet" href="../css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>Visitor Details — GeoVision</title>
+<meta name="description" content="Register a new visitor into GeoVision Campus Security">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="user-shell.css">
 </head>
 <body>
 
-    <div class="page-container">
-        <div class="page-header">
-            <h1>Enter Student / Staff Details</h1>
-        </div>
+<!-- ── TOPBAR ── -->
+<header class="u-topbar">
+  <a href="../index.html" class="u-topbar-logo" style="text-decoration:none;">
+    <img src="../assets/logo.png" alt="GeoVision"
+      onerror="this.style.display='none'">
+  </a>
+  <div class="u-topbar-right">
+    <button class="u-theme-btn" id="theme-btn">🌙</button>
+  </div>
+</header>
 
-        <nav>
-            <a href="../index.html">Back to Login</a>
-        </nav>
+<div class="u-app">
+  <div class="u-page">
 
-        <form>
-            <h2>Personal Information</h2>
-
-            <label for="full-name">Full Name:</label>
-            <input type="text" id="full-name" name="full-name">
-
-            <label for="student-id">Student / Staff ID:</label>
-            <input type="text" id="student-id" name="student-id">
-
-            <label for="email">Email Address:</label>
-            <input type="email" id="email" name="email">
-
-            <label for="department">Department:</label>
-            <input type="text" id="department" name="department">
-
-            <label for="phone">Phone Number:</label>
-            <input type="text" id="phone" name="phone">
-
-            <a href="capture-face.html" class="btn">Next: Capture Facial Data</a>
-            <a href="../index.html" class="btn">Cancel</a>
-        </form>
-
-        <div class="page-footer">
-            <p>Campus Security System &copy; 2026</p>
-        </div>
+    <!-- Progress bar -->
+    <div class="u-progress">
+      <div class="u-progress-step active">
+        <div class="u-progress-dot">1</div>
+        <span>Details</span>
+      </div>
+      <div class="u-progress-line"></div>
+      <div class="u-progress-step">
+        <div class="u-progress-dot">2</div>
+        <span>Face ID</span>
+      </div>
+      <div class="u-progress-line"></div>
+      <div class="u-progress-step">
+        <div class="u-progress-dot">3</div>
+        <span>Done</span>
+      </div>
     </div>
 
+    <!-- Form card -->
+    <div class="u-card">
+      <div class="u-card-header">
+        <span style="font-size:20px">🪪</span>
+        <div>
+          <h2>Visitor Details</h2>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px">Fill in the visitor's information before face capture</div>
+        </div>
+      </div>
+      <div class="u-card-body">
+
+        <div id="form-error" style="display:none;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.25);border-radius:var(--radius-md);padding:10px 14px;font-size:13px;color:#dc2626;margin-bottom:16px;"></div>
+
+        <div class="u-form-group">
+          <label class="u-label">Full Name *</label>
+          <input class="u-input" type="text" id="v-name" placeholder="e.g. John Doe" autocomplete="name">
+        </div>
+
+        <div class="u-form-group">
+          <label class="u-label">Phone Number *</label>
+          <input class="u-input" type="tel" id="v-phone" placeholder="+91 98765 43210" autocomplete="tel">
+        </div>
+
+        <div class="u-form-group">
+          <label class="u-label">Purpose of Visit *</label>
+          <select class="u-input" id="v-purpose">
+            <option value="">Select purpose…</option>
+            <option>Meeting Faculty</option>
+            <option>Parent / Guardian Visit</option>
+            <option>Delivery / Courier</option>
+            <option>Guest Lecture</option>
+            <option>Maintenance / Repair</option>
+            <option>Government Official</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="u-form-group">
+          <label class="u-label">Host Name *</label>
+          <input class="u-input" type="text" id="v-host" placeholder="e.g. Dr. Ravi Shankar">
+        </div>
+
+        <div class="u-form-group">
+          <label class="u-label">Department / Block</label>
+          <input class="u-input" type="text" id="v-dept" placeholder="e.g. CS Dept, Admin Block">
+        </div>
+
+        <div class="u-form-group">
+          <label class="u-label">Government ID Number *</label>
+          <input class="u-input" type="text" id="v-idnum" placeholder="Aadhaar, Driving Licence, or Passport No." autocomplete="off">
+        </div>
+
+        <div style="height:4px"></div>
+
+        <button class="u-btn u-btn-primary" onclick="proceedToCapture()">
+          Continue to Face Capture →
+        </button>
+        <a href="../admin/visitor-management.html" class="u-btn u-btn-secondary u-mt-8">
+          ✕ Cancel
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="u-toast-container" id="toast-box"></div>
+
+<script src="../api/db.js"></script>
+<script>
+/* ── THEME ── */
+function applyTheme() {
+  const dark = localStorage.getItem('gv_theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : '');
+  document.getElementById('theme-btn').textContent = dark ? '☀️' : '🌙';
+}
+applyTheme();
+document.getElementById('theme-btn').addEventListener('click', () => {
+  const next = localStorage.getItem('gv_theme') === 'dark' ? '' : 'dark';
+  localStorage.setItem('gv_theme', next);
+  applyTheme();
+});
+
+/* ── PROCEED ── */
+function proceedToCapture() {
+  const name    = document.getElementById('v-name').value.trim();
+  const phone   = document.getElementById('v-phone').value.trim();
+  const purpose = document.getElementById('v-purpose').value;
+  const host    = document.getElementById('v-host').value.trim();
+  const idnum   = document.getElementById('v-idnum').value.trim();
+  const dept    = document.getElementById('v-dept').value.trim();
+
+  const err = document.getElementById('form-error');
+
+  if (!name)    { showErr('Please enter the visitor\'s full name.'); return; }
+  if (!phone)   { showErr('Please enter a phone number.'); return; }
+  if (!purpose) { showErr('Please select a purpose of visit.'); return; }
+  if (!host)    { showErr('Please enter the host name.'); return; }
+  if (!idnum)   { showErr('Please enter a government ID number.'); return; }
+
+  err.style.display = 'none';
+
+  // Save visitor data to sessionStorage so face_capture picks it up
+  const visitorDraft = { name, phone, purpose, host, dept, idnum };
+  sessionStorage.setItem('gv_visitor_draft', JSON.stringify(visitorDraft));
+
+  window.location.href = 'face_capture_system.html?mode=visitor';
+}
+
+function showErr(msg) {
+  const el = document.getElementById('form-error');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+</script>
 </body>
 </html>

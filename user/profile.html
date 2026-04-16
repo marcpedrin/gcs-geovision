@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>My Profile — GeoVision</title>
+<meta name="description" content="Student profile dashboard for GeoVision Campus Security">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="user-shell.css">
+<style>
+/* ── PAGE-SPECIFIC: PROFILE ── */
+.edit-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(6px);
+  display:flex; align-items:flex-end; justify-content:center;
+  padding:0;
+  opacity:0; pointer-events:none;
+  transition:opacity .25s;
+}
+.edit-overlay.open{ opacity:1; pointer-events:all; }
+.edit-sheet{
+  background:var(--bg-card);
+  border-radius:24px 24px 0 0;
+  width:100%; max-width:640px;
+  padding:0 0 32px;
+  transform:translateY(40px);
+  transition:transform .3s cubic-bezier(.22,.61,.36,1);
+  max-height:90vh;
+  overflow-y:auto;
+}
+.edit-overlay.open .edit-sheet{ transform:translateY(0); }
+.edit-sheet-handle{
+  width:40px; height:4px;
+  background:var(--border-light);
+  border-radius:var(--radius-full);
+  margin:14px auto 20px;
+}
+.edit-sheet-body{ padding:0 20px; }
+
+/* avatar picker */
+.pfp-picker{
+  width:90px; height:90px;
+  border-radius:50%;
+  border:3px dashed var(--border-light);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; margin:0 auto 20px; overflow:hidden;
+  transition:border-color .2s;
+  position:relative;
+}
+.pfp-picker:hover{ border-color:var(--clr-primary); }
+.pfp-picker img{ width:100%; height:100%; object-fit:cover; display:none; border-radius:50%; }
+.pfp-picker .pfp-icon{ font-size:28px; }
+.pfp-picker.has-img .pfp-icon{ display:none; }
+.pfp-picker.has-img img{ display:block; }
+</style>
+</head>
+<body>
+<!-- ── TOPBAR ── -->
+<header class="u-topbar">
+  <a href="../index.html" class="u-topbar-logo" style="text-decoration:none;">
+    <img src="../assets/logo.png" alt="GeoVision"
+      onerror="this.style.display='none'">
+  </a>
+  <div class="u-topbar-right">
+    <button class="u-theme-btn" id="theme-btn">🌙</button>
+  </div>
+</header>
+
+<!-- ── DESKTOP NAV ── -->
+<nav class="u-desktop-nav">
+  <a href="profile.html"        class="u-desktop-nav-item active">🙍 Profile</a>
+  <a href="my-entries.html"     class="u-desktop-nav-item">🚪 My Entries</a>
+  <a href="face_capture_system.html?mode=update" class="u-desktop-nav-item">🤳 Face Enrolment</a>
+</nav>
+
+<div class="u-app">
+  <div class="u-page" id="page-content">
+    <!-- Loading state -->
+    <div id="loading-state" style="text-align:center;padding:60px 20px;color:var(--text-tertiary)">
+      <div style="font-size:32px;margin-bottom:12px">⏳</div>
+      <div style="font-size:14px;font-weight:600">Loading profile…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="u-bottom-nav">
+  <a href="profile.html" class="u-nav-item active">
+    <span class="u-nav-icon">🙍</span>
+    <span>Profile</span>
+  </a>
+  <a href="my-entries.html" class="u-nav-item">
+    <span class="u-nav-icon">🚪</span>
+    <span>Entries</span>
+  </a>
+  <a href="face_capture_system.html?mode=update" class="u-nav-item">
+    <span class="u-nav-icon">🤳</span>
+    <span>Face ID</span>
+  </a>
+  <a href="#" class="u-nav-item" onclick="doLogout()">
+    <span class="u-nav-icon">🚪</span>
+    <span>Logout</span>
+  </a>
+</nav>
+
+<!-- ── EDIT SHEET ── -->
+<div class="edit-overlay" id="edit-overlay" onclick="closeEdit(event)">
+  <div class="edit-sheet" id="edit-sheet">
+    <div class="edit-sheet-handle"></div>
+    <div class="edit-sheet-body">
+      <h2 style="font-size:17px;font-weight:800;margin-bottom:20px">Edit Profile</h2>
+
+      <!-- PFP Picker -->
+      <div class="pfp-picker" id="pfp-picker" onclick="document.getElementById('pfp-input').click()">
+        <span class="pfp-icon">📷</span>
+        <img id="pfp-preview" src="" alt="">
+      </div>
+      <input type="file" id="pfp-input" accept="image/*" style="display:none" onchange="previewPfp(event)">
+
+      <div class="u-form-group">
+        <label class="u-label">Full Name</label>
+        <input class="u-input" type="text" id="edit-name" placeholder="Full Name">
+      </div>
+      <div class="u-form-group">
+        <label class="u-label">Phone Number</label>
+        <input class="u-input" type="tel" id="edit-phone" placeholder="+91 98765 43210">
+      </div>
+      <div class="u-form-group">
+        <label class="u-label">Department</label>
+        <select class="u-input" id="edit-dept">
+          <option value="">Select…</option>
+          <option>Computer Science & Engineering</option>
+          <option>Electronics & Communication</option>
+          <option>Mechanical Engineering</option>
+          <option>Civil Engineering</option>
+          <option>Business Administration</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="u-form-group">
+        <label class="u-label">Year of Study</label>
+        <select class="u-input" id="edit-year">
+          <option value="">Select…</option>
+          <option>1st Year</option>
+          <option>2nd Year</option>
+          <option>3rd Year</option>
+          <option>4th Year</option>
+          <option>PG / Faculty</option>
+        </select>
+      </div>
+      <button class="u-btn u-btn-primary u-mt-16" onclick="saveProfile()">💾 Save Changes</button>
+      <button class="u-btn u-btn-secondary u-mt-8" onclick="closeEdit()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="u-toast-container" id="toast-box"></div>
+
+<script src="../api/db.js"></script>
+<script>
+/* ── AUTH GUARD ────────────────────────────────── */
+let currentUser = null;
+let userData    = null;
+let newPfpData  = null;
+
+window.addEventListener('load', async () => {
+  currentUser = GeoVisionDB.currentUser();
+  if (!currentUser || currentUser.role !== 'student') {
+    window.location.href = '../index.html';
+    return;
+  }
+  userData = await GeoVisionDB.users.get(currentUser.email);
+  renderProfile();
+  applyTheme();
+});
+
+/* ── THEME ─────────────────────────────────────── */
+function applyTheme() {
+  const dark = localStorage.getItem('gv_theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : '');
+  document.getElementById('theme-btn').textContent = dark ? '☀️' : '🌙';
+}
+document.getElementById('theme-btn').addEventListener('click', () => {
+  const next = localStorage.getItem('gv_theme') === 'dark' ? '' : 'dark';
+  localStorage.setItem('gv_theme', next);
+  applyTheme();
+});
+
+/* ── RENDER PROFILE ────────────────────────────── */
+function renderProfile() {
+  const u = userData;
+  const initials = (u.name || 'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const enrolled = u.faceEnrolled;
+
+  const html = `
+    <!-- Hero -->
+    <div class="u-profile-hero">
+      <div class="u-profile-avatar-wrap">
+        ${u.pfp
+          ? `<img class="u-profile-avatar" src="${u.pfp}" alt="${u.name}">`
+          : `<div class="u-profile-avatar-placeholder">${initials}</div>`
+        }
+        <div class="u-profile-edit-badge" onclick="openEdit()">✏️</div>
+      </div>
+      <div class="u-profile-name">${u.name || 'Student'}</div>
+      <div class="u-profile-role">${u.dept || 'GeoVision Campus'} • ${u.year || 'Student'}</div>
+      <div class="u-profile-badges">
+        <span class="u-badge u-badge-id">🪪 ${u.studentId || 'N/A'}</span>
+        ${enrolled
+          ? `<span class="u-badge u-badge-enrolled">✅ Face Enrolled</span>`
+          : `<span class="u-badge u-badge-pending">⏳ Face Pending</span>`
+        }
+      </div>
+    </div>
+
+    <!-- Quick stats -->
+    <div class="u-stat-row">
+      <div class="u-stat-chip">
+        <div class="u-stat-chip-val" id="stat-entries">—</div>
+        <div class="u-stat-chip-label">Entries</div>
+      </div>
+      <div class="u-stat-chip">
+        <div class="u-stat-chip-val">${enrolled ? '✓' : '✗'}</div>
+        <div class="u-stat-chip-label">Face ID</div>
+      </div>
+      <div class="u-stat-chip">
+        <div class="u-stat-chip-val" id="stat-days">—</div>
+        <div class="u-stat-chip-label">Days Since</div>
+      </div>
+    </div>
+
+    <!-- Info card -->
+    <div class="u-section-title">Personal Information</div>
+    <div class="u-card">
+      <div class="u-card-body" style="padding:4px 20px">
+        <div class="u-info-row">
+          <div class="u-info-icon">📧</div>
+          <div><div class="u-info-label">Email</div><div class="u-info-value">${u.email}</div></div>
+        </div>
+        <div class="u-info-row">
+          <div class="u-info-icon">📱</div>
+          <div><div class="u-info-label">Phone</div><div class="u-info-value">${u.phone || '—'}</div></div>
+        </div>
+        <div class="u-info-row">
+          <div class="u-info-icon">🏫</div>
+          <div><div class="u-info-label">Department</div><div class="u-info-value">${u.dept || '—'}</div></div>
+        </div>
+        <div class="u-info-row">
+          <div class="u-info-icon">📅</div>
+          <div><div class="u-info-label">Year</div><div class="u-info-value">${u.year || '—'}</div></div>
+        </div>
+        <div class="u-info-row">
+          <div class="u-info-icon">🗓</div>
+          <div><div class="u-info-label">Registered</div><div class="u-info-value">${u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}) : '—'}</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="u-section-title">Actions</div>
+    <div class="u-card">
+      <div class="u-card-body u-flex-col" style="gap:10px;padding:16px 20px">
+        <button class="u-btn u-btn-primary" onclick="openEdit()">✏️ Edit Profile</button>
+        <a href="face_capture_system.html?mode=update" class="u-btn u-btn-secondary">
+          🤳 ${enrolled ? 'Re-enrol' : 'Enrol'} Face Data
+        </a>
+        <button class="u-btn u-btn-outline-danger" onclick="doLogout()">🚪 Sign Out</button>
+      </div>
+    </div>
+
+    <!-- Recent entries -->
+    <div class="u-section-title">Recent Campus Entries</div>
+    <div class="u-card">
+      <div class="u-card-body" style="padding:4px 20px" id="entries-list">
+        <div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px">Loading…</div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('page-content').innerHTML = html;
+
+  // Load entry stats
+  loadEntries();
+}
+
+async function loadEntries() {
+  try {
+    const logs = await GeoVisionDB.entryLogs.getByUser(userData.email);
+    const all  = await GeoVisionDB.entryLogs.getAll();
+    // Fallback to all logs if user has none (demo)
+    const display = logs.length ? logs : all.slice(0,5);
+
+    document.getElementById('stat-entries').textContent = display.length;
+
+    const days = userData.joinedAt
+      ? Math.floor((Date.now() - new Date(userData.joinedAt)) / 86400000)
+      : 0;
+    document.getElementById('stat-days').textContent = days;
+
+    const listEl = document.getElementById('entries-list');
+    if (!display.length) {
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px">No entry records yet.</div>';
+      return;
+    }
+    const sorted = display.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0,6);
+    listEl.innerHTML = sorted.map(e => `
+      <div class="u-entry-item">
+        <div class="u-entry-dot ${e.type}"></div>
+        <div class="u-entry-info">
+          <div class="u-entry-gate">📍 ${e.gate}</div>
+          <div class="u-entry-time">${new Date(e.timestamp).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        <span class="u-entry-type ${e.type}">${e.type === 'entry' ? '→ Entry' : '← Exit'}</span>
+      </div>
+    `).join('');
+  } catch (e) { console.error(e); }
+}
+
+/* ── EDIT SHEET ────────────────────────────────── */
+function openEdit() {
+  const u = userData;
+  document.getElementById('edit-name').value  = u.name  || '';
+  document.getElementById('edit-phone').value = u.phone || '';
+  // Set dept/year selects
+  setSelectValue('edit-dept', u.dept || '');
+  setSelectValue('edit-year', u.year || '');
+  // Preview existing pfp
+  if (u.pfp) {
+    document.getElementById('pfp-preview').src = u.pfp;
+    document.getElementById('pfp-picker').classList.add('has-img');
+  }
+  document.getElementById('edit-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEdit(e) {
+  if (e && e.target !== document.getElementById('edit-overlay')) return;
+  document.getElementById('edit-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function setSelectValue(id, val) {
+  const sel = document.getElementById(id);
+  for (const opt of sel.options) { if (opt.value === val || opt.text === val) { sel.value = opt.value; return; } }
+}
+
+function previewPfp(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    newPfpData = ev.target.result;
+    document.getElementById('pfp-preview').src = newPfpData;
+    document.getElementById('pfp-picker').classList.add('has-img');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveProfile() {
+  const name  = document.getElementById('edit-name').value.trim();
+  const phone = document.getElementById('edit-phone').value.trim();
+  const dept  = document.getElementById('edit-dept').value;
+  const year  = document.getElementById('edit-year').value;
+
+  if (!name) { showToast('Please enter your name.', 'error'); return; }
+
+  const updated = {
+    ...userData,
+    name,
+    phone,
+    dept,
+    year,
+    pfp: newPfpData || userData.pfp || null,
+  };
+
+  try {
+    await GeoVisionDB.users.save(updated);
+    userData = updated;
+    newPfpData = null;
+    document.getElementById('edit-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+    renderProfile();
+    showToast('✅ Profile updated!', 'success');
+  } catch (err) {
+    showToast('Failed to save. Try again.', 'error');
+    console.error(err);
+  }
+}
+
+/* ── LOGOUT ────────────────────────────────────── */
+function doLogout() {
+  GeoVisionDB.logout();
+  window.location.href = '../index.html';
+}
+
+/* ── TOAST ─────────────────────────────────────── */
+function showToast(msg, type='info') {
+  const c = document.getElementById('toast-box');
+  const t = document.createElement('div');
+  t.className = `u-toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+</script>
+</body>
+</html>

@@ -2,15 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Face Capture — GeoVision Campus Security</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>Face Enrolment — GeoVision</title>
+<meta name="description" content="Facial capture enrolment for GeoVision Campus Security">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/shell.css">
+<link rel="stylesheet" href="user-shell.css">
 <style>
 /* ── FACE CAPTURE LAYOUT ── */
 .capture-layout {
-  display:grid; grid-template-columns:1fr 380px; gap:24px; align-items:start;
+  display:grid; grid-template-columns:1fr 380px; gap:24px; align-items:stretch;
+}
+.left-col {
+  display:flex; flex-direction:column; gap:12px; height: 100%;
 }
 
 /* ── CAMERA PANEL ── */
@@ -18,6 +22,7 @@
   background:var(--bg-card); border:1px solid var(--border-light);
   border-radius:var(--radius-lg); overflow:hidden;
   transition:background .3s, border-color .3s;
+  display:flex; flex-direction:column; flex:1;
 }
 .camera-header {
   padding:16px 20px; border-bottom:1px solid var(--border-light);
@@ -34,7 +39,7 @@
 
 /* Camera view */
 .camera-view {
-  position:relative; background:#000; aspect-ratio:4/3;
+  position:relative; background:#000; flex:1; min-height:400px;
   display:flex; align-items:center; justify-content:center; overflow:hidden;
 }
 .camera-video { width:100%; height:100%; object-fit:cover; display:block; }
@@ -43,67 +48,127 @@
 .scan-frame {
   position:absolute; inset:0; pointer-events:none;
 }
-.scan-corners::before,
-.scan-corners::after {
-  content:''; position:absolute;
-  width:60px; height:60px;
-  border:3px solid var(--clr-primary);
-  opacity:.85; transition:all .5s;
+.scan-corners {
+  position:absolute; inset:5%; pointer-events:none;
+  animation: hudPulse 4s infinite alternate;
 }
-.scan-corners::before { top:20%; left:20%; border-right:none; border-bottom:none; border-radius:6px 0 0 0; }
-.scan-corners::after  { bottom:20%; right:20%; border-left:none; border-top:none; border-radius:0 0 6px 0; }
+@keyframes hudPulse {
+  0% { transform: scale(1); opacity: .8; }
+  100% { transform: scale(1.02); opacity: 1; box-shadow: inset 0 0 40px rgba(220,38,38,.1); }
+}
+
+.scan-corners::before,
+.scan-corners::after,
 .scan-corners2::before,
 .scan-corners2::after {
   content:''; position:absolute;
-  width:60px; height:60px;
-  border:3px solid var(--clr-primary);
-  opacity:.85;
+  width:50px; height:50px;
+  border:4px solid var(--clr-primary);
+  opacity:0.9;
+  filter: drop-shadow(0 0 8px rgba(220,38,38,.8));
+  transition: all .3s cubic-bezier(.22,.61,.36,1);
 }
-.scan-corners2::before { top:20%; right:20%; border-left:none; border-bottom:none; border-radius:0 6px 0 0; }
-.scan-corners2::after  { bottom:20%; left:20%; border-right:none; border-top:none; border-radius:0 0 0 6px; }
+.scan-corners::before { top:0; left:0; border-right:none; border-bottom:none; border-radius:12px 0 0 0; }
+.scan-corners::after  { bottom:0; right:0; border-left:none; border-top:none; border-radius:0 0 12px 0; }
+.scan-corners2::before { top:0; right:0; border-left:none; border-bottom:none; border-radius:0 12px 0 0; }
+.scan-corners2::after  { bottom:0; left:0; border-right:none; border-top:none; border-radius:0 0 0 12px; }
 
-/* Scanning line */
+/* Dynamic Scanning line with sweep gradient */
 .scan-line {
-  position:absolute; left:18%; right:18%; height:2px;
-  background:linear-gradient(90deg,transparent,var(--clr-primary),transparent);
-  box-shadow:0 0 8px rgba(220,38,38,.6);
-  animation:scanMove 2s linear infinite;
+  position:absolute; left:10%; right:10%; height:4px;
+  background:linear-gradient(90deg, transparent, rgba(220,38,38,1) 50%, transparent);
+  box-shadow: 0 0 12px 2px rgba(220,38,38,.8), 0 10px 30px rgba(220,38,38,.4);
   opacity:0;
+  border-radius: 50%;
+  pointer-events:none;
 }
-.scan-line.active { opacity:1; }
-@keyframes scanMove {
-  0%   { top:20%; }
-  50%  { top:80%; }
-  100% { top:20%; }
+.scan-line.active {
+  opacity:1;
+  animation:scanSweep 2.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes scanSweep {
+  0%   { top:15%; opacity: 0; transform: scaleX(0.8); }
+  20%  { opacity: 1; transform: scaleX(1.1); }
+  80%  { opacity: 1; transform: scaleX(1.1); }
+  100% { top:85%; opacity: 0; transform: scaleX(0.8); }
 }
 
-/* Face guide oval */
-.face-guide {
+/* Authentic Face guide oval with rotating dashed dasharray logic */
+.face-guide-wrap {
   position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-  width:140px; height:175px; border-radius:50%;
-  border:2px dashed rgba(255,255,255,.4);
-  transition:border-color .4s;
+  width:160px; height:200px;
+  pointer-events: none;
 }
-.face-guide.ok  { border-color:rgba(34,197,94,.7); border-style:solid; box-shadow:0 0 16px rgba(34,197,94,.3); }
-.face-guide.bad { border-color:rgba(220,38,38,.7); border-style:solid; }
+
+.face-guide {
+  position:absolute; inset:0;
+  border-radius:50%;
+  border:3px dashed rgba(255,255,255,.5);
+  transition:all .4s ease-out;
+  animation: rotateGuide 10s linear infinite;
+}
+@keyframes rotateGuide { 100% { transform: rotate(360deg); } }
+
+.face-guide::before {
+  content:''; position:absolute; inset:-12px;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:50%;
+  animation: rotateGuide 15s linear infinite reverse;
+}
+
+.face-guide.ok  { 
+  border-color: rgba(34,197,94,1); 
+  border-style: dotted; 
+  box-shadow: 0 0 20px rgba(34,197,94,.5), inset 0 0 20px rgba(34,197,94,.4); 
+  animation: lockIn .3s forwards, rotateGuide 2s linear infinite;
+  transform: scale(1.05); /* Slight pop when detected */
+}
+.face-guide.ok::before {
+  border-color: rgba(34,197,94,.3);
+  box-shadow: 0 0 10px rgba(34,197,94,.2);
+}
+@keyframes lockIn {
+  0% { transform: scale(1.2); opacity: 0; }
+  100% { transform: scale(1.05); opacity: 1; }
+}
+
+.face-guide.bad { 
+  border-color: rgba(220,38,38,.8); 
+  border-style: solid; 
+  box-shadow: 0 0 20px rgba(220,38,38,.3);
+}
 
 /* Camera overlays */
 .cam-overlay {
-  position:absolute; inset:0; background:rgba(0,0,0,.7);
+  position:absolute; inset:0; background:rgba(0,0,0,.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display:flex; align-items:center; justify-content:center;
   flex-direction:column; gap:12px; color:#fff; text-align:center; padding:20px;
+  transition: opacity 0.4s ease, visibility 0.4s;
+  z-index: 10;
 }
-.cam-overlay.hidden { display:none; }
-.cam-overlay-icon { font-size:48px; }
-.cam-overlay-title { font-size:18px; font-weight:700; }
-.cam-overlay-sub   { font-size:13px; color:rgba(255,255,255,.7); max-width:260px; }
+.cam-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.cam-overlay-icon { font-size:54px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.5)); animation: floatIcon 3s ease-in-out infinite; }
+@keyframes floatIcon {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.cam-overlay-title { font-size:20px; font-weight:800; letter-spacing: 0.5px; }
+.cam-overlay-sub   { font-size:13px; color:rgba(255,255,255,.7); max-width:280px; line-height: 1.5; }
 
-/* Flash effect on capture */
+/* Futuristic flash aperture effect */
 .cam-flash {
   position:absolute; inset:0; background:#fff;
   opacity:0; pointer-events:none; transition:opacity .1s;
+  z-index: 20; mix-blend-mode: overlay;
 }
-.cam-flash.flash { opacity:1; }
+.cam-flash.flash { animation: triggerFlash .4s cubic-bezier(0.1, 0.9, 0.2, 1); }
+@keyframes triggerFlash {
+  0% { opacity: 1; box-shadow: inset 0 0 100px #fff; transform: scale(1.05); }
+  40% { opacity: 0.8; }
+  100% { opacity: 0; transform: scale(1); }
+}
 
 /* Camera bottom bar */
 .camera-bottom {
@@ -138,7 +203,10 @@
 }
 .steps-card-header {
   padding:14px 20px; border-bottom:1px solid var(--border-light);
-  font-size:14px; font-weight:700;
+  font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px;
+}
+.steps-card-header::before {
+  content: ''; display:block; width:4px; height:16px; background:var(--clr-primary); border-radius:2px;
 }
 .steps-card-body { padding:14px 20px; }
 
@@ -166,7 +234,13 @@
   border-radius:var(--radius-lg); overflow:hidden;
   transition:background .3s, border-color .3s;
 }
-.gallery-header { padding:14px 20px; border-bottom:1px solid var(--border-light); font-size:14px; font-weight:700; }
+.gallery-header { 
+  padding:14px 20px; border-bottom:1px solid var(--border-light); font-size:14px; font-weight:700; 
+  display:flex; align-items:center; gap:8px;
+}
+.gallery-header::before {
+  content: ''; display:block; width:4px; height:16px; background:var(--clr-primary); border-radius:2px;
+}
 .gallery-grid   { padding:14px 20px; display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
 .gallery-item {
   aspect-ratio:1; background:var(--bg-badge);
@@ -217,61 +291,54 @@
 </style>
 </head>
 <body>
-<div id="app-shell">
 
-  <!-- ═══ SIDEBAR ═══ -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo">
-        <img src="../assets/logo.svg" alt="GeoVision" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-        <div class="sidebar-logo-fallback" style="display:none"><span>Geo</span>Vision</div>
-      </div>
-    </div>
-    <div class="sidebar-profile">
-      <div class="sidebar-avatar">AD</div>
-      <div class="sidebar-profile-info">
-        <div class="sidebar-profile-name">Admin User</div>
-        <div class="sidebar-profile-role">Security Administrator</div>
-      </div>
-      <div class="sidebar-status-dot"></div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="sidebar-nav-label">Main Menu</div>
-      <a href="../index.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🏠</span> Home</a>
-      <a href="../admin/dashboard.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📊</span> Dashboard</a>
-      <a href="../admin/cctv-feed.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📹</span> CCTV Feed</a>
-      <a href="../admin/entry-history.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🚪</span> Entry History</a>
-      <a href="../admin/security-threats.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">⚠️</span> Threats <span class="sidebar-nav-badge">3</span></a>
-      <a href="../admin/student-profile-system-upgraded.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">👤</span> Student Profiles</a>
-      <div class="sidebar-nav-label" style="margin-top:14px">Enrolment</div>
-      <a href="face_capture_system.html" class="sidebar-nav-item active"><span class="sidebar-nav-icon">📸</span> Face Capture</a>
-      <a href="visitor-management.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🪪</span> Visitors</a>
-    </nav>
-    <div class="sidebar-footer">
-      <button class="sidebar-footer-btn" id="btn-logout"><span>🚪</span> Logout</button>
-    </div>
-  </aside>
+<!-- ── USER TOPBAR ── -->
+<header class="u-topbar">
+  <a href="../index.html" class="u-topbar-logo" style="text-decoration:none;">
+    <img src="../assets/logo.png" alt="GeoVision"
+      onerror="this.style.display='none'">
+  </a>
+  <div class="u-topbar-right">
+    <button class="u-theme-btn" id="theme-btn">🌙</button>
+  </div>
+</header>
 
-  <!-- ═══ MAIN ═══ -->
-  <main class="main-content no-panel">
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-breadcrumb">GeoVision / <span>Face Capture</span></div>
-      </div>
-      <div class="topbar-right">
-        <button class="theme-toggle" id="theme-toggle">🌙 Dark Mode</button>
-      </div>
-    </div>
+<!-- ── DESKTOP NAV ── -->
+<nav class="u-desktop-nav">
+  <a href="profile.html"    class="u-desktop-nav-item" id="nav-profile">🙍 Profile</a>
+  <a href="my-entries.html" class="u-desktop-nav-item">🚪 My Entries</a>
+  <a href="face_capture_system.html?mode=update" class="u-desktop-nav-item active">🤳 Face Enrolment</a>
+</nav>
 
-    <div class="page-body">
+<!-- ── PAGE WRAPPER ── -->
+<div class="u-app">
+<div class="u-page">
       <div class="page-title-area">
         <h1>Face Enrolment System</h1>
         <p>Capture multiple angles for accurate facial recognition. Please follow each prompt carefully.</p>
       </div>
 
+      <!-- Progress bar -->
+      <div class="u-progress">
+        <div class="u-progress-step done">
+          <div class="u-progress-dot">✓</div>
+          <span id="step1-label">Details</span>
+        </div>
+        <div class="u-progress-line done" id="prog-line-1"></div>
+        <div class="u-progress-step active">
+          <div class="u-progress-dot">2</div>
+          <span>Face ID</span>
+        </div>
+        <div class="u-progress-line" id="prog-line-2"></div>
+        <div class="u-progress-step" id="prog-step-3">
+          <div class="u-progress-dot">3</div>
+          <span>Done</span>
+        </div>
+      </div>
+
       <div class="capture-layout">
         <!-- Left: Camera -->
-        <div>
+        <div class="left-col">
           <div class="camera-panel">
             <div class="camera-header">
               <h2>📸 Live Camera — Enrolment</h2>
@@ -286,8 +353,10 @@
               <div class="scan-frame scan-corners2"></div>
               <div class="scan-line" id="scan-line"></div>
 
-              <!-- Face guide -->
-              <div class="face-guide" id="face-guide"></div>
+              <!-- Face guide (now inside a wrapper for proper centering and rotation scaling) -->
+              <div class="face-guide-wrap">
+                <div class="face-guide" id="face-guide"></div>
+              </div>
 
               <!-- Flash -->
               <div class="cam-flash" id="cam-flash"></div>
@@ -331,8 +400,13 @@
           <div class="enroll-success" id="enroll-success">
             <div class="enroll-tick">✅</div>
             <div class="enroll-title">Enrolment Complete!</div>
-            <div class="enroll-sub">All 5 face angles were captured successfully. The profile has been enrolled in the GeoVision database with a confidence score of <strong id="final-conf">97.4%</strong>.</div>
-            <button class="enroll-restart" onclick="resetCapture()">↺ Enrol Another</button>
+            <div class="enroll-sub">All 5 face angles captured. Profile enrolled with a confidence score of <strong id="final-conf">97.4%</strong>.</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px;">
+              <button class="enroll-restart" onclick="resetCapture()">↺ Capture Again</button>
+              <button class="enroll-restart" id="btn-done"
+                style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.18);"
+                onclick="handleDone()">→ Done</button>
+            </div>
           </div>
         </div>
 
@@ -343,11 +417,7 @@
             <div class="steps-card-header">🗂️ Capture Steps</div>
             <div class="steps-card-body" id="steps-list"></div>
           </div>
-          <!-- Gallery -->
-          <div class="gallery-card">
-            <div class="gallery-header">🖼️ Captured Frames</div>
-            <div class="gallery-grid" id="gallery-grid"></div>
-          </div>
+
           <!-- Tips -->
           <div class="steps-card">
             <div class="steps-card-header">💡 Tips for Best Results</div>
@@ -362,14 +432,60 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </main>
-</div>
+      </div> <!-- /.capture-layout -->
 
-<div class="toast-container" id="toast-container"></div>
-<script src="../css/shell.js"></script>
+      <!-- Gallery (Spanning bottom left and right) -->
+      <div class="gallery-card" style="margin-top: 24px;">
+        <div class="gallery-header">🖼️ Captured Frames</div>
+        <div class="gallery-grid" id="gallery-grid"></div>
+      </div>
+
+    </div> <!-- /.u-page -->
+  </div> <!-- /.u-app -->
+
+  <!-- ── BOTTOM NAV ── -->
+  <nav class="u-bottom-nav" id="bottom-nav">
+    <a href="profile.html"    class="u-nav-item" id="nav-profile-btn">
+      <span class="u-nav-icon">🙍</span><span>Profile</span>
+    </a>
+    <a href="my-entries.html" class="u-nav-item">
+      <span class="u-nav-icon">🚪</span><span>Entries</span>
+    </a>
+    <a href="face_capture_system.html?mode=update" class="u-nav-item active">
+      <span class="u-nav-icon">🤳</span><span>Face ID</span>
+    </a>
+    <a href="#" class="u-nav-item" onclick="GeoVisionDB.logout();window.location.href='../index.html'">
+      <span class="u-nav-icon">🚪</span><span>Logout</span>
+    </a>
+  </nav>
+
+<div class="u-toast-container" id="toast-container"></div>
+<script src="../api/db.js"></script>
 <script>
+const MODE = new URLSearchParams(window.location.search).get('mode') || 'visitor';
+
+// Theme
+function applyTheme() {
+  const dark = localStorage.getItem('gv_theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : '');
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = dark ? '☀️' : '🌙';
+}
+applyTheme();
+document.getElementById('theme-btn')?.addEventListener('click', () => {
+  localStorage.setItem('gv_theme', localStorage.getItem('gv_theme') === 'dark' ? '' : 'dark');
+  applyTheme();
+});
+
+// Adjust progress bar labels based on mode
+if (MODE === 'update' || MODE === 'register') {
+  const l = document.getElementById('step1-label');
+  if (l) l.textContent = MODE === 'update' ? 'Profile' : 'Register';
+  // Hide bottom nav when not a student session
+  const nav = document.getElementById('bottom-nav');
+  if (MODE === 'register' && nav) nav.style.display = 'none';
+}
+
 /* ── STEPS CONFIG ── */
 const STEPS = [
   { label:'Look Straight',   icon:'😐', sub:'Face the camera directly. Keep your eyes level.',           hint:'Hold still and look forward.' },
@@ -550,17 +666,62 @@ function captureFrame() {
   }
 }
 
-function finishEnrolment() {
+function showToast(msg, type) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `u-toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+async function finishEnrolment() {
   if (stream) { stream.getTracks().forEach(t => t.stop()); }
   scanLine.classList.remove('active');
   captureBtn.disabled = true;
 
   const conf = (95 + Math.random() * 4.9).toFixed(1);
   document.getElementById('final-conf').textContent = conf + '%';
+
+  // ── DB ACTIONS based on mode ──
+  try {
+    if (MODE === 'register' || MODE === 'update') {
+      // Mark face enrolled for logged-in student
+      const cu = GeoVisionDB.currentUser();
+      if (cu) {
+        const u = await GeoVisionDB.users.get(cu.email);
+        if (u) {
+          await GeoVisionDB.users.save({ ...u, faceEnrolled: true, faceConfidence: conf, faceUpdatedAt: new Date().toISOString() });
+        }
+      }
+    } else if (MODE === 'visitor') {
+      // Save visitor record from session storage draft
+      const draft = JSON.parse(sessionStorage.getItem('gv_visitor_draft') || 'null');
+      if (draft) {
+        const gates = ['Main Gate','East Entrance','North Gate','Admin Block Entry'];
+        await GeoVisionDB.visitors.add({
+          ...draft,
+          status: 'On Campus',
+          gate: gates[Math.floor(Math.random() * gates.length)],
+          confidence: conf,
+          checkinAt: new Date().toISOString(),
+        });
+        sessionStorage.removeItem('gv_visitor_draft');
+      }
+    }
+  } catch(e) { console.error('DB save failed:', e); }
+
   document.getElementById('enroll-success').classList.add('show');
   document.querySelector('.camera-panel').style.display = 'none';
   document.querySelector('.status-bar').style.display   = 'none';
-  showToast('🎉 Enrolment complete! Profile enrolled with ' + conf + '% confidence.', 'success');
+
+  // Mark step 3 done in progress bar
+  const s3 = document.getElementById('prog-step-3');
+  const l2 = document.getElementById('prog-line-2');
+  if (s3) s3.classList.add('done');
+  if (l2) l2.classList.add('done');
+
+  showToast('🎉 Enrolment complete! Confidence: ' + conf + '%', 'success');
 }
 
 function resetCapture() {
@@ -590,6 +751,17 @@ function setStatus(msg, type) {
 // Init
 buildUI();
 setStatus('Camera not started. Click "Start Camera" to begin.', 'info');
+
+function handleDone() {
+  if (MODE === 'visitor') {
+    window.location.href = '../admin/visitor-management.html';
+  } else if (MODE === 'register') {
+    window.location.href = 'profile.html';
+  } else {
+    window.location.href = 'profile.html';
+  }
+}
 </script>
 </body>
 </html>
+

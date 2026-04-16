@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -118,16 +118,24 @@
             <div class="sidebar-status-dot"></div>
         </div>
         <nav class="sidebar-nav">
-            <div class="sidebar-nav-label">Main Menu</div>
-            <a href="../index.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🏠</span> Dashboard</a>
-            <a href="cctv-feed.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📹</span> CCTV Feed</a>
-            <a href="entry-history.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🚪</span> Entry History</a>
-            <a href="security-threats.html" class="sidebar-nav-item active"><span class="sidebar-nav-icon">⚠️</span> Threats</a>
-            <a href="student-profile-system-upgraded.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">👤</span> Student Profiles</a>
-            <div class="sidebar-nav-label" style="margin-top:16px">Enrolment</div>
-            <a href="face_capture_system.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📸</span> Face Capture</a>
-            <a href="../user/signup-details.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📝</span> Sign-Up Details</a>
-        </nav>
+      <div class="sidebar-nav-label">Main Menu</div>
+      <a href="dashboard.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">📊</span> Dashboard
+      </a>
+      <a href="cctv-feed.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">📹</span> CCTV Feed
+      </a>
+      <a href="entry-history.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">🚪</span> Entry History
+      </a>
+      <a href="security-threats.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">⚠️</span> Threats
+        <span class="sidebar-nav-badge" id="threat-badge">3</span>
+      </a>
+      <a href="visitor-management.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">🪪</span> Visitors
+      </a>
+    </nav>
         <div class="sidebar-footer">
             <button class="sidebar-footer-btn" onclick="if(confirm('Logout?')) window.location='../index.html'">
                 <span>🚪</span> Logout
@@ -210,3 +218,5 @@
 </script>
 </body>
 </html>
+
+

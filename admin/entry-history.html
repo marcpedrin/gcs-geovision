@@ -1,320 +1,474 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Entry History — GeoVision Campus Security</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/shell.css">
-<style>
-/* ── ENTRY TABLE ── */
-.entry-table-wrap {
-  background:var(--bg-card); border:1px solid var(--border-light);
-  border-radius:var(--radius-lg); overflow:hidden;
-  transition:background .3s, border-color .3s;
-}
-.entry-table-header {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 20px; border-bottom:1px solid var(--border-light);
-}
-.entry-table-header-left { display:flex; align-items:center; gap:10px; }
-.entry-table-filters { display:flex; align-items:center; gap:8px; }
-.filter-input {
-  padding:7px 12px; border:1px solid var(--border-light);
-  border-radius:var(--radius-sm); font-size:12px; font-weight:500;
-  background:var(--bg-input); color:var(--text-primary);
-  transition:border .2s;
-}
-.filter-input:focus { border-color:var(--clr-primary); }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Entry History — GeoVision Campus Security</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../css/shell.css">
+    <style>
+        /* ── ENTRY TABLE ── */
+        .entry-table-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: background .3s, border-color .3s;
+        }
 
-/* Table */
-table { width:100%; border-collapse:collapse; }
-thead tr {
-  background:var(--bg-badge); border-bottom:2px solid var(--border-light);
-}
-thead th {
-  padding:10px 16px; text-align:left; font-size:11px; font-weight:700;
-  text-transform:uppercase; letter-spacing:0.6px; color:var(--text-tertiary);
-  white-space:nowrap;
-}
-tbody tr {
-  border-bottom:1px solid var(--border-light);
-  transition:background var(--transition-fast);
-  animation:rowIn .3s ease;
-}
-@keyframes rowIn {
-  from { opacity:0; transform:translateX(-8px); }
-  to   { opacity:1; transform:translateX(0); }
-}
-tbody tr:hover { background:var(--bg-table-row-hover); }
-tbody tr.new-row { animation:rowFlash .8s ease; }
-@keyframes rowFlash {
-  0%   { background:rgba(220,38,38,.12); }
-  100% { background:transparent; }
-}
-td { padding:12px 16px; font-size:13px; color:var(--text-primary); vertical-align:middle; }
-.td-person { display:flex; align-items:center; gap:10px; }
-.td-avatar {
-  width:34px; height:34px; border-radius:var(--radius-full);
-  display:flex; align-items:center; justify-content:center;
-  font-weight:700; font-size:11px; color:#fff; flex-shrink:0;
-}
-.td-name { font-weight:600; font-size:13px; }
-.td-id   { font-size:11px; color:var(--text-tertiary); }
-.badge {
-  display:inline-flex; align-items:center; padding:3px 10px;
-  border-radius:var(--radius-full); font-size:11px; font-weight:600;
-}
-.badge-entry   { background:rgba(34,197,94,.1);  color:#16a34a; }
-.badge-exit    { background:rgba(99,102,241,.1); color:#6366f1; }
-.badge-denied  { background:var(--clr-danger-ghost); color:var(--clr-danger); }
-.conf-value    { font-weight:700; }
-.conf-high     { color:var(--clr-success); }
-.conf-med      { color:var(--clr-warning); }
-.conf-low      { color:var(--clr-danger); }
+        .entry-table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
 
-/* View Profile button */
-.view-profile-btn {
-  padding:5px 12px; border-radius:var(--radius-sm);
-  font-size:11px; font-weight:600; color:var(--clr-primary);
-  border:1px solid var(--clr-primary-ghost); cursor:pointer;
-  background:none; transition:all var(--transition-fast);
-}
-.view-profile-btn:hover { background:var(--clr-primary); color:#fff; }
+        .entry-table-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-/* Live indicator */
-.live-badge {
-  display:inline-flex; align-items:center; gap:5px;
-  padding:4px 10px; border-radius:var(--radius-full);
-  background:var(--clr-danger-ghost); color:var(--clr-danger);
-  font-size:11px; font-weight:700;
-}
+        .entry-table-filters {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-/* Pagination / count bar */
-.table-footer {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:12px 20px; border-top:1px solid var(--border-light);
-  font-size:12px; color:var(--text-tertiary);
-}
-</style>
+        .filter-input {
+            padding: 7px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 500;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            transition: border .2s;
+        }
+
+        .filter-input:focus {
+            border-color: var(--clr-primary);
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead tr {
+            background: var(--bg-badge);
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        thead th {
+            padding: 10px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-tertiary);
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border-light);
+            transition: background var(--transition-fast);
+            animation: rowIn .3s ease;
+        }
+
+        @keyframes rowIn {
+            from {
+                opacity: 0;
+                transform: translateX(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        tbody tr:hover {
+            background: var(--bg-table-row-hover);
+        }
+
+        tbody tr.new-row {
+            animation: rowFlash .8s ease;
+        }
+
+        @keyframes rowFlash {
+            0% {
+                background: rgba(220, 38, 38, .12);
+            }
+
+            100% {
+                background: transparent;
+            }
+        }
+
+        td {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        .td-person {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .td-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 11px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .td-name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .td-id {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-entry {
+            background: rgba(34, 197, 94, .1);
+            color: #16a34a;
+        }
+
+        .badge-exit {
+            background: rgba(99, 102, 241, .1);
+            color: #6366f1;
+        }
+
+        .badge-denied {
+            background: var(--clr-danger-ghost);
+            color: var(--clr-danger);
+        }
+
+        .conf-value {
+            font-weight: 700;
+        }
+
+        .conf-high {
+            color: var(--clr-success);
+        }
+
+        .conf-med {
+            color: var(--clr-warning);
+        }
+
+        .conf-low {
+            color: var(--clr-danger);
+        }
+
+        /* View Profile button */
+        .view-profile-btn {
+            padding: 5px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--clr-primary);
+            border: 1px solid var(--clr-primary-ghost);
+            cursor: pointer;
+            background: none;
+            transition: all var(--transition-fast);
+        }
+
+        .view-profile-btn:hover {
+            background: var(--clr-primary);
+            color: #fff;
+        }
+
+        /* Live indicator */
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            background: var(--clr-danger-ghost);
+            color: var(--clr-danger);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* Pagination / count bar */
+        .table-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-light);
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+    </style>
 </head>
+
 <body>
-<div id="app-shell">
+    <div id="app-shell">
 
-  <!-- ═══ SIDEBAR ═══ -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo">
-        <img src="../assets/logo.svg" alt="GeoVision" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-        <div class="sidebar-logo-fallback" style="display:none"><span>Geo</span>Vision</div>
-      </div>
+        <!-- ═══ SIDEBAR ═══ -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <img src="../assets/logo.png" alt="GeoVision"
+                        onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                    <div class="sidebar-logo-fallback" style="display:none"><span>Geo</span>Vision</div>
+                </div>
+            </div>
+            <div class="sidebar-profile">
+                <div class="sidebar-avatar">AD</div>
+                <div class="sidebar-profile-info">
+                    <div class="sidebar-profile-name">Admin User</div>
+                    <div class="sidebar-profile-role">Security Administrator</div>
+                </div>
+                <div class="sidebar-status-dot"></div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-nav-label">Main Menu</div>
+                <a href="dashboard.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-icon">📊</span> Dashboard
+                </a>
+                <a href="cctv-feed.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-icon">📹</span> CCTV Feed
+                </a>
+                <a href="entry-history.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-icon">🚪</span> Entry History
+                </a>
+                <a href="security-threats.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-icon">⚠️</span> Threats
+                    <span class="sidebar-nav-badge" id="threat-badge">3</span>
+                </a>
+                <a href="visitor-management.html" class="sidebar-nav-item">
+                    <span class="sidebar-nav-icon">🪪</span> Visitors
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="sidebar-footer-btn" id="btn-logout"><span>🚪</span> Logout</button>
+            </div>
+        </aside>
+
+        <!-- ═══ MAIN ═══ -->
+        <main class="main-content no-panel">
+            <div class="topbar">
+                <div class="topbar-left">
+                    <div class="topbar-breadcrumb">GeoVision / <span>Entry History</span></div>
+                    <div class="live-badge">
+                        <div class="live-dot"></div> LIVE
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <button class="topbar-btn" id="btn-export">⬇ Export CSV</button>
+                    <button class="topbar-btn" id="btn-refresh">↺ Refresh</button>
+                    <button class="theme-toggle" id="theme-toggle">🌙 Dark Mode</button>
+                </div>
+            </div>
+
+            <div class="page-body">
+                <div class="page-title-area">
+                    <h1>Entry & Exit History</h1>
+                    <p>Live log of all campus gate events. Auto-updating in real-time.</p>
+                </div>
+
+                <!-- Stats row -->
+                <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-title-group">
+                                <div class="stat-card-label">Total Entries</div>
+                                <div class="stat-card-icon" style="background:#f1f1f1;color:#111">→</div>
+                            </div>
+                            <span class="stat-card-trend up">▲ 12%</span>
+                        </div>
+                        <div class="stat-card-value" id="stat-entries">247</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-title-group">
+                                <div class="stat-card-label">Total Exits</div>
+                                <div class="stat-card-icon" style="background:rgba(99,102,241,.1);color:#6366f1">↩</div>
+                            </div>
+                            <span class="stat-card-trend neutral">Today</span>
+                        </div>
+                        <div class="stat-card-value" id="stat-exits">89</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-title-group">
+                                <div class="stat-card-label">Access Denied</div>
+                                <div class="stat-card-icon"
+                                    style="background:var(--clr-danger-ghost);color:var(--clr-danger)">🚫</div>
+                            </div>
+                            <span class="stat-card-trend down">▲ 2</span>
+                        </div>
+                        <div class="stat-card-value" id="stat-denied">5</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-card-title-group">
+                                <div class="stat-card-label">Avg Confidence</div>
+                                <div class="stat-card-icon"
+                                    style="background:var(--clr-success-ghost);color:var(--clr-success)">✓</div>
+                            </div>
+                            <span class="stat-card-trend up">▲ 1.2%</span>
+                        </div>
+                        <div class="stat-card-value" id="stat-avg-conf">96.3%</div>
+                    </div>
+                </div>
+
+                <!-- Entry Table -->
+                <div class="entry-table-wrap">
+                    <div class="entry-table-header">
+                        <div class="entry-table-header-left">
+                            <span class="section-card-title">📋 Live Entry Log</span>
+                            <span class="section-card-count" id="row-count">Loading…</span>
+                        </div>
+                        <div class="entry-table-filters">
+                            <input type="text" class="filter-input" id="search-input"
+                                placeholder="🔍 Search name or ID…" oninput="filterTable()">
+                            <select class="filter-input" id="type-filter" onchange="filterTable()">
+                                <option value="all">All Types</option>
+                                <option value="entry">Entry</option>
+                                <option value="exit">Exit</option>
+                                <option value="denied">Denied</option>
+                            </select>
+                            <select class="filter-input" id="gate-filter" onchange="filterTable()">
+                                <option value="all">All Gates</option>
+                                <option>Main Gate</option>
+                                <option>East Entrance</option>
+                                <option>Library</option>
+                                <option>Admin Block</option>
+                                <option>Sports Complex</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Person</th>
+                                    <th>Department</th>
+                                    <th>Gate / Location</th>
+                                    <th>Time</th>
+                                    <th>Type</th>
+                                    <th>Confidence</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="entry-tbody"></tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <span id="table-summary">Showing latest entries</span>
+                        <span id="entry-count-total">Total: 0 records</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
     </div>
-    <div class="sidebar-profile">
-      <div class="sidebar-avatar">AD</div>
-      <div class="sidebar-profile-info">
-        <div class="sidebar-profile-name">Admin User</div>
-        <div class="sidebar-profile-role">Security Administrator</div>
-      </div>
-      <div class="sidebar-status-dot"></div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="sidebar-nav-label">Main Menu</div>
-      <a href="../index.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🏠</span> Home</a>
-      <a href="dashboard.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📊</span> Dashboard</a>
-      <a href="cctv-feed.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📹</span> CCTV Feed</a>
-      <a href="entry-history.html" class="sidebar-nav-item active"><span class="sidebar-nav-icon">🚪</span> Entry History</a>
-      <a href="security-threats.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">⚠️</span> Threats <span class="sidebar-nav-badge">3</span></a>
-      <a href="student-profile-system-upgraded.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">👤</span> Student Profiles</a>
-      <div class="sidebar-nav-label" style="margin-top:14px">Enrolment</div>
-      <a href="../user/face_capture_system.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📸</span> Face Capture</a>
-      <a href="../user/visitor-management.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🪪</span> Visitors</a>
-    </nav>
-    <div class="sidebar-footer">
-      <button class="sidebar-footer-btn" id="btn-logout"><span>🚪</span> Logout</button>
-    </div>
-  </aside>
+    <div class="toast-container" id="toast-container"></div>
+    <script src="../css/shell.js"></script>
+    <script>
+        const MAX_ROWS = 50;
+        let rows = [];
+        let entryCount = 247, exitCount = 89, deniedCount = 5;
+        const confValues = [];
 
-  <!-- ═══ MAIN ═══ -->
-  <main class="main-content no-panel">
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-breadcrumb">GeoVision / <span>Entry History</span></div>
-        <div class="live-badge"><div class="live-dot"></div> LIVE</div>
-      </div>
-      <div class="topbar-right">
-        <button class="topbar-btn" id="btn-export">⬇ Export CSV</button>
-        <button class="topbar-btn" id="btn-refresh">↺ Refresh</button>
-        <button class="theme-toggle" id="theme-toggle">🌙 Dark Mode</button>
-      </div>
-    </div>
+        function confClass(c, type) {
+            if (type === 'denied') return 'conf-low';
+            return c >= 90 ? 'conf-high' : c >= 75 ? 'conf-med' : 'conf-low';
+        }
+        function confNum(type) {
+            return type === 'denied' ? parseFloat(randomLowConf()) : parseFloat(randomConf());
+        }
 
-    <div class="page-body">
-      <div class="page-title-area">
-        <h1>Entry & Exit History</h1>
-        <p>Live log of all campus gate events. Auto-updating in real-time.</p>
-      </div>
+        function typeLabel(t) {
+            if (t === 'entry') return '<span class="badge badge-entry">→ Entry</span>';
+            if (t === 'exit') return '<span class="badge badge-exit">↩ Exit</span>';
+            return '<span class="badge badge-denied">🚫 Denied</span>';
+        }
 
-      <!-- Stats row -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);">
-        <div class="stat-card">
-          <div class="stat-card-header">
-            <div class="stat-card-icon" style="background:#f1f1f1;color:#111">→</div>
-            <span class="stat-card-trend up">▲ 12%</span>
-          </div>
-          <div class="stat-card-value" id="stat-entries">247</div>
-          <div class="stat-card-label">Total Entries</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-header">
-            <div class="stat-card-icon" style="background:rgba(99,102,241,.1);color:#6366f1">↩</div>
-            <span class="stat-card-trend neutral">Today</span>
-          </div>
-          <div class="stat-card-value" id="stat-exits">89</div>
-          <div class="stat-card-label">Total Exits</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-header">
-            <div class="stat-card-icon" style="background:var(--clr-danger-ghost);color:var(--clr-danger)">🚫</div>
-            <span class="stat-card-trend down">▲ 2</span>
-          </div>
-          <div class="stat-card-value" id="stat-denied">5</div>
-          <div class="stat-card-label">Access Denied</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-header">
-            <div class="stat-card-icon" style="background:var(--clr-success-ghost);color:var(--clr-success)">✓</div>
-            <span class="stat-card-trend up">▲ 1.2%</span>
-          </div>
-          <div class="stat-card-value" id="stat-avg-conf">96.3%</div>
-          <div class="stat-card-label">Avg Confidence</div>
-        </div>
-      </div>
+        function viewProfile(personIdx) {
+            const p = PEOPLE[personIdx];
+            localStorage.setItem('gv_profile', JSON.stringify(p));
+            window.location.href = 'student-profile-system-upgraded.html';
+        }
 
-      <!-- Entry Table -->
-      <div class="entry-table-wrap">
-        <div class="entry-table-header">
-          <div class="entry-table-header-left">
-            <span class="section-card-title">📋 Live Entry Log</span>
-            <span class="section-card-count" id="row-count">Loading…</span>
-          </div>
-          <div class="entry-table-filters">
-            <input type="text" class="filter-input" id="search-input" placeholder="🔍 Search name or ID…" oninput="filterTable()">
-            <select class="filter-input" id="type-filter" onchange="filterTable()">
-              <option value="all">All Types</option>
-              <option value="entry">Entry</option>
-              <option value="exit">Exit</option>
-              <option value="denied">Denied</option>
-            </select>
-            <select class="filter-input" id="gate-filter" onchange="filterTable()">
-              <option value="all">All Gates</option>
-              <option>Main Gate</option>
-              <option>East Entrance</option>
-              <option>Library</option>
-              <option>Admin Block</option>
-              <option>Sports Complex</option>
-            </select>
-          </div>
-        </div>
-        <div style="overflow-x:auto">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Person</th>
-                <th>Department</th>
-                <th>Gate / Location</th>
-                <th>Time</th>
-                <th>Type</th>
-                <th>Confidence</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="entry-tbody"></tbody>
-          </table>
-        </div>
-        <div class="table-footer">
-          <span id="table-summary">Showing latest entries</span>
-          <span id="entry-count-total">Total: 0 records</span>
-        </div>
-      </div>
-    </div>
-  </main>
+        function addRow(person, type, personIdx) {
+            const gate = randomGate();
+            const conf = confNum(type);
+            const cc = confClass(conf, type);
+            const time = new Date();
 
-</div>
-<div class="toast-container" id="toast-container"></div>
-<script src="../css/shell.js"></script>
-<script>
-const MAX_ROWS = 50;
-let rows = [];
-let entryCount = 247, exitCount = 89, deniedCount = 5;
-const confValues = [];
+            confValues.push(conf);
+            if (confValues.length > 30) confValues.shift();
+            const avg = (confValues.reduce((a, b) => a + b, 0) / confValues.length).toFixed(1);
+            const avgEl = document.getElementById('stat-avg-conf');
+            if (avgEl) avgEl.textContent = avg + '%';
 
-function confClass(c, type) {
-  if (type === 'denied') return 'conf-low';
-  return c >= 90 ? 'conf-high' : c >= 75 ? 'conf-med' : 'conf-low';
-}
-function confNum(type) {
-  return type === 'denied' ? parseFloat(randomLowConf()) : parseFloat(randomConf());
-}
+            rows.unshift({ person, type, gate, conf, cc, time, personIdx });
+            if (rows.length > MAX_ROWS) rows.pop();
 
-function typeLabel(t) {
-  if (t === 'entry')  return '<span class="badge badge-entry">→ Entry</span>';
-  if (t === 'exit')   return '<span class="badge badge-exit">↩ Exit</span>';
-  return '<span class="badge badge-denied">🚫 Denied</span>';
-}
+            renderTable();
+            updateStats(type);
+        }
 
-function viewProfile(personIdx) {
-  const p = PEOPLE[personIdx];
-  localStorage.setItem('gv_profile', JSON.stringify(p));
-  window.location.href = 'student-profile-system-upgraded.html';
-}
+        function updateStats(type) {
+            if (type === 'entry') { entryCount++; document.getElementById('stat-entries').textContent = entryCount.toLocaleString(); }
+            if (type === 'exit') { exitCount++; document.getElementById('stat-exits').textContent = exitCount.toLocaleString(); }
+            if (type === 'denied') { deniedCount++; document.getElementById('stat-denied').textContent = deniedCount.toLocaleString(); }
+        }
 
-function addRow(person, type, personIdx) {
-  const gate = randomGate();
-  const conf = confNum(type);
-  const cc   = confClass(conf, type);
-  const time = new Date();
+        function renderTable() {
+            const search = (document.getElementById('search-input')?.value || '').toLowerCase();
+            const tf = document.getElementById('type-filter')?.value || 'all';
+            const gf = document.getElementById('gate-filter')?.value || 'all';
 
-  confValues.push(conf);
-  if (confValues.length > 30) confValues.shift();
-  const avg = (confValues.reduce((a,b)=>a+b,0)/confValues.length).toFixed(1);
-  const avgEl = document.getElementById('stat-avg-conf');
-  if (avgEl) avgEl.textContent = avg + '%';
+            const filtered = rows.filter(r => {
+                const matchSearch = r.person.name.toLowerCase().includes(search) || r.person.id.toLowerCase().includes(search);
+                const matchType = tf === 'all' || r.type === tf;
+                const matchGate = gf === 'all' || r.gate === gf;
+                return matchSearch && matchType && matchGate;
+            });
 
-  rows.unshift({ person, type, gate, conf, cc, time, personIdx });
-  if (rows.length > MAX_ROWS) rows.pop();
+            const tbody = document.getElementById('entry-tbody');
+            tbody.innerHTML = '';
 
-  renderTable();
-  updateStats(type);
-}
-
-function updateStats(type) {
-  if (type === 'entry')  { entryCount++;  document.getElementById('stat-entries').textContent = entryCount.toLocaleString(); }
-  if (type === 'exit')   { exitCount++;   document.getElementById('stat-exits').textContent   = exitCount.toLocaleString(); }
-  if (type === 'denied') { deniedCount++; document.getElementById('stat-denied').textContent  = deniedCount.toLocaleString(); }
-}
-
-function renderTable() {
-  const search = (document.getElementById('search-input')?.value || '').toLowerCase();
-  const tf     = document.getElementById('type-filter')?.value || 'all';
-  const gf     = document.getElementById('gate-filter')?.value || 'all';
-
-  const filtered = rows.filter(r => {
-    const matchSearch = r.person.name.toLowerCase().includes(search) || r.person.id.toLowerCase().includes(search);
-    const matchType   = tf === 'all' || r.type === tf;
-    const matchGate   = gf === 'all' || r.gate === gf;
-    return matchSearch && matchType && matchGate;
-  });
-
-  const tbody = document.getElementById('entry-tbody');
-  tbody.innerHTML = '';
-
-  filtered.forEach((r, i) => {
-    const tr = document.createElement('tr');
-    if (i === 0) tr.classList.add('new-row');
-    tr.innerHTML = `
-      <td style="color:var(--text-tertiary);font-weight:600">${String(filtered.length - i).padStart(3,'0')}</td>
+            filtered.forEach((r, i) => {
+                const tr = document.createElement('tr');
+                if (i === 0) tr.classList.add('new-row');
+                tr.innerHTML = `
+      <td style="color:var(--text-tertiary);font-weight:600">${String(filtered.length - i).padStart(3, '0')}</td>
       <td>
         <div class="td-person">
           <div class="td-avatar" style="background:linear-gradient(135deg,${r.person.color})">${r.person.initials}</div>
@@ -331,38 +485,40 @@ function renderTable() {
       <td><span class="conf-value ${r.cc}">${r.conf.toFixed(1)}%</span></td>
       <td><button class="view-profile-btn" onclick="viewProfile(${r.personIdx})">View Profile</button></td>
     `;
-    tbody.appendChild(tr);
-  });
+                tbody.appendChild(tr);
+            });
 
-  document.getElementById('row-count').textContent = `${filtered.length} records`;
-  document.getElementById('entry-count-total').textContent = `Total: ${rows.length} records`;
-  document.getElementById('table-summary').textContent = filtered.length < rows.length
-    ? `Showing ${filtered.length} of ${rows.length}` : `Showing latest ${rows.length} entries`;
-}
+            document.getElementById('row-count').textContent = `${filtered.length} records`;
+            document.getElementById('entry-count-total').textContent = `Total: ${rows.length} records`;
+            document.getElementById('table-summary').textContent = filtered.length < rows.length
+                ? `Showing ${filtered.length} of ${rows.length}` : `Showing latest ${rows.length} entries`;
+        }
 
-function filterTable() { renderTable(); }
+        function filterTable() { renderTable(); }
 
-// Seed
-const seeds = [
-  [PEOPLE[0],'entry',0],[PEOPLE[1],'entry',1],[PEOPLE[2],'exit',2],
-  [PEOPLE[3],'entry',3],[PEOPLE[4],'entry',4],[PEOPLE[5],'exit',5],
-  [PEOPLE[6],'denied',6],[PEOPLE[7],'entry',7],[PEOPLE[8],'exit',8],
-];
-seeds.reverse().forEach(([p,t,idx]) => addRow(p,t,idx));
+        // Seed
+        const seeds = [
+            [PEOPLE[0], 'entry', 0], [PEOPLE[1], 'entry', 1], [PEOPLE[2], 'exit', 2],
+            [PEOPLE[3], 'entry', 3], [PEOPLE[4], 'entry', 4], [PEOPLE[5], 'exit', 5],
+            [PEOPLE[6], 'denied', 6], [PEOPLE[7], 'entry', 7], [PEOPLE[8], 'exit', 8],
+        ];
+        seeds.reverse().forEach(([p, t, idx]) => addRow(p, t, idx));
 
-// Live simulation
-function liveEvent() {
-  const idx = Math.floor(Math.random() * PEOPLE.length);
-  const p   = PEOPLE[idx];
-  const r   = Math.random();
-  const type = r < .6 ? 'entry' : r < .88 ? 'exit' : 'denied';
-  addRow(p, type, idx);
-  const gate = randomGate();
-  if (type === 'denied') showToast(`⚠️ Access denied at ${gate}`, 'error');
-  else showToast(`${type === 'entry' ? '→' : '↩'} ${p.name} · ${gate}`, 'info');
-  setTimeout(liveEvent, 3500 + Math.random() * 4000);
-}
-setTimeout(liveEvent, 2000);
-</script>
+        // Live simulation
+        function liveEvent() {
+            const idx = Math.floor(Math.random() * PEOPLE.length);
+            const p = PEOPLE[idx];
+            const r = Math.random();
+            const type = r < .6 ? 'entry' : r < .88 ? 'exit' : 'denied';
+            addRow(p, type, idx);
+            const gate = randomGate();
+            if (type === 'denied') showToast(`⚠️ Access denied at ${gate}`, 'error');
+            else showToast(`${type === 'entry' ? '→' : '↩'} ${p.name} · ${gate}`, 'info');
+            setTimeout(liveEvent, 3500 + Math.random() * 4000);
+        }
+        setTimeout(liveEvent, 2000);
+    </script>
 </body>
+
 </html>
+

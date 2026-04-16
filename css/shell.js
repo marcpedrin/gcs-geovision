@@ -107,7 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (logoutBtn) logoutBtn.addEventListener('click', () => {
     if (confirm('Are you sure you want to logout?')) {
       showToast('Logging out…','info');
-      setTimeout(() => window.location.href = '../index.html', 1500);
+      sessionStorage.removeItem('gv_user'); // Clear user session from DB
+      setTimeout(() => window.location.href = '../index.html', 1000);
     }
   });
 
@@ -116,4 +117,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const exportBtn = document.getElementById('btn-export');
   if (exportBtn) exportBtn.addEventListener('click', () => showToast('Generating security report… download starting shortly.','info'));
+
+  // CCTV Modal Injection
+  const modalHTML = `
+    <div id="cctv-modal" class="cctv-modal">
+        <div class="cctv-modal-overlay"></div>
+        <div class="cctv-modal-content">
+            <button class="cctv-modal-close">&times;</button>
+            <div class="cctv-modal-header">
+                <span class="cctv-modal-title">Live Feed</span>
+                <span class="cctv-modal-badge">LIVE</span>
+            </div>
+            <div class="cctv-modal-video" id="cctv-modal-video"></div>
+        </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  const cctvModal = document.getElementById('cctv-modal');
+  const modalVideo = document.getElementById('cctv-modal-video');
+  const modalTitle = cctvModal.querySelector('.cctv-modal-title');
+  const closeBtn = cctvModal.querySelector('.cctv-modal-close');
+  const overlay = cctvModal.querySelector('.cctv-modal-overlay');
+
+  function closeCctvModal() {
+      cctvModal.classList.remove('active');
+  }
+
+  closeBtn.addEventListener('click', closeCctvModal);
+  overlay.addEventListener('click', closeCctvModal);
+
+  const triggers = document.querySelectorAll('.cctv-cell, .cam-card');
+  triggers.forEach(trigger => {
+      trigger.addEventListener('click', () => {
+          const bgEl = trigger.querySelector('.cctv-cell-bg') || trigger.querySelector('.cam-feed');
+          const titleEl = trigger.querySelector('.cctv-label') || trigger.querySelector('h4');
+          const titleText = titleEl ? titleEl.textContent.trim() : 'Live Camera';
+
+          if (bgEl) {
+              if (bgEl.style.backgroundImage) {
+                  modalVideo.style.backgroundImage = bgEl.style.backgroundImage;
+              } else if (bgEl.style.background) {
+                   modalVideo.style.background = bgEl.style.background;
+              }
+          }
+
+          modalTitle.textContent = titleText.replace(/🔒|📍|❌/g, '').trim();
+          cctvModal.classList.add('active');
+      });
+  });
 });

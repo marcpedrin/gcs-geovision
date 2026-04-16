@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>My Entries — GeoVision</title>
+<meta name="description" content="View your campus entry and exit history on GeoVision">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="user-shell.css">
+</head>
+<body>
+
+<!-- ── TOPBAR ── -->
+<header class="u-topbar">
+  <a href="../index.html" class="u-topbar-logo" style="text-decoration:none;">
+    <img src="../assets/logo.png" alt="GeoVision" onerror="this.style.display='none'">
+  </a>
+  <div class="u-topbar-right">
+    <button class="u-theme-btn" id="theme-btn">🌙</button>
+  </div>
+</header>
+
+<!-- ── DESKTOP NAV ── -->
+<nav class="u-desktop-nav">
+  <a href="profile.html"    class="u-desktop-nav-item">🙍 Profile</a>
+  <a href="my-entries.html" class="u-desktop-nav-item active">🚪 My Entries</a>
+  <a href="face_capture_system.html?mode=update" class="u-desktop-nav-item">🤳 Face Enrolment</a>
+</nav>
+
+<div class="u-app">
+  <div class="u-page">
+
+    <!-- Page title -->
+    <div style="margin-bottom:16px">
+      <h1 style="font-size:20px;font-weight:800;color:var(--text-primary)">🚪 Entry History</h1>
+      <p style="font-size:13px;color:var(--text-tertiary);margin-top:3px">Your campus gate entries and exits</p>
+    </div>
+
+    <!-- Stats row -->
+    <div class="u-stat-row" id="stats-row">
+      <div class="u-stat-chip">
+        <div class="u-stat-chip-val" id="stat-total">—</div>
+        <div class="u-stat-chip-label">Total</div>
+      </div>
+      <div class="u-stat-chip">
+        <div class="u-stat-chip-val" id="stat-in">—</div>
+        <div class="u-stat-chip-label">Entries</div>
+      </div>
+      <div class="u-stat-chip">
+        <div class="u-stat-chip-val" id="stat-out">—</div>
+        <div class="u-stat-chip-label">Exits</div>
+      </div>
+    </div>
+
+    <!-- Filter chips -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <button class="u-theme-btn filter-chip active" data-filter="all" onclick="setFilter('all',this)">All</button>
+      <button class="u-theme-btn filter-chip" data-filter="entry" onclick="setFilter('entry',this)">Entries Only</button>
+      <button class="u-theme-btn filter-chip" data-filter="exit"  onclick="setFilter('exit',this)">Exits Only</button>
+    </div>
+
+    <!-- Entries list -->
+    <div class="u-card">
+      <div class="u-card-body" style="padding:4px 20px" id="entries-list">
+        <div style="text-align:center;padding:40px 20px;color:var(--text-tertiary)">
+          <div style="font-size:32px;margin-bottom:8px">⏳</div>
+          <div style="font-size:13px;font-weight:600">Loading your entries…</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="u-bottom-nav">
+  <a href="profile.html"    class="u-nav-item">
+    <span class="u-nav-icon">🙍</span><span>Profile</span>
+  </a>
+  <a href="my-entries.html" class="u-nav-item active">
+    <span class="u-nav-icon">🚪</span><span>Entries</span>
+  </a>
+  <a href="face_capture_system.html?mode=update" class="u-nav-item">
+    <span class="u-nav-icon">🤳</span><span>Face ID</span>
+  </a>
+  <a href="#" class="u-nav-item" onclick="GeoVisionDB.logout();window.location.href='../index.html'">
+    <span class="u-nav-icon">🚪</span><span>Logout</span>
+  </a>
+</nav>
+
+<div class="u-toast-container" id="toast-box"></div>
+<script src="../api/db.js"></script>
+<script>
+/* ── THEME ── */
+function applyTheme() {
+  const dark = localStorage.getItem('gv_theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : '');
+  document.getElementById('theme-btn').textContent = dark ? '☀️' : '🌙';
+}
+applyTheme();
+document.getElementById('theme-btn').addEventListener('click', () => {
+  localStorage.setItem('gv_theme', localStorage.getItem('gv_theme') === 'dark' ? '' : 'dark');
+  applyTheme();
+});
+
+/* ── AUTH GUARD ── */
+let allEntries = [];
+let currentFilter = 'all';
+
+window.addEventListener('load', async () => {
+  const u = GeoVisionDB.currentUser();
+  if (!u || u.role !== 'student') {
+    window.location.href = '../index.html';
+    return;
+  }
+
+  try {
+    // Try to get user-specific entries, fall back to all sample data
+    const userEntries = await GeoVisionDB.entryLogs.getByUser(u.email);
+    const allLogEntries = await GeoVisionDB.entryLogs.getAll();
+    allEntries = userEntries.length ? userEntries : allLogEntries;
+    allEntries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    updateStats();
+    renderList();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('entries-list').innerHTML =
+      '<div style="text-align:center;padding:30px;color:var(--text-tertiary);font-size:13px">Failed to load entries.</div>';
+  }
+});
+
+/* ── STATS ── */
+function updateStats() {
+  const entries = allEntries.filter(e => e.type === 'entry' || !e.type).length;
+  const exits   = allEntries.filter(e => e.type === 'exit').length;
+  document.getElementById('stat-total').textContent = allEntries.length;
+  document.getElementById('stat-in').textContent    = entries;
+  document.getElementById('stat-out').textContent   = exits;
+}
+
+/* ── FILTER ── */
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c =>
+    c.classList.toggle('active', c.dataset.filter === f));
+  renderList();
+}
+
+/* ── RENDER ── */
+function renderList() {
+  const filtered = currentFilter === 'all'
+    ? allEntries
+    : allEntries.filter(e => (currentFilter === 'exit' ? e.type === 'exit' : (e.type === 'entry' || !e.type)));
+
+  const list = document.getElementById('entries-list');
+
+  if (!filtered.length) {
+    list.innerHTML = `
+      <div style="text-align:center;padding:40px 20px;color:var(--text-tertiary)">
+        <div style="font-size:32px;margin-bottom:8px">📭</div>
+        <div style="font-size:13px;font-weight:600">No entries found for this filter.</div>
+      </div>`;
+    return;
+  }
+
+  // Group by date
+  const groups = {};
+  filtered.forEach(e => {
+    const d = new Date(e.timestamp).toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long' });
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(e);
+  });
+
+  let html = '';
+  for (const [date, items] of Object.entries(groups)) {
+    html += `<div style="font-size:11px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.5px;padding:14px 0 6px;">${date}</div>`;
+    items.forEach(e => {
+      const isEntry = e.type !== 'exit';
+      const time = new Date(e.timestamp).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+      const conf = e.confidence ? ` · ${e.confidence}%` : '';
+      html += `
+        <div class="u-entry-item">
+          <div class="u-entry-dot ${isEntry ? 'in' : 'out'}"></div>
+          <div class="u-entry-info">
+            <div class="u-entry-gate">📍 ${e.gate || 'Campus Gate'}</div>
+            <div class="u-entry-time">${time}${conf}</div>
+          </div>
+          <span class="u-entry-type ${isEntry ? 'in' : 'out'}">${isEntry ? '→ Entry' : '← Exit'}</span>
+        </div>`;
+    });
+  }
+
+  list.innerHTML = html;
+}
+
+/* ── FILTER CHIP STYLE ── */
+const style = document.createElement('style');
+style.textContent = `
+  .filter-chip.active {
+    background: rgba(220,38,38,.12);
+    color: var(--clr-primary);
+    border-color: rgba(220,38,38,.25);
+  }
+`;
+document.head.appendChild(style);
+</script>
+</body>
+</html>

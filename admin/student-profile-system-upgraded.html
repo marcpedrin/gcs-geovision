@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -116,7 +116,7 @@
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
-        <img src="../assets/logo.svg" alt="GeoVision" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <img src="../assets/logo.png" alt="GeoVision" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
         <div class="sidebar-logo-fallback" style="display:none"><span>Geo</span>Vision</div>
       </div>
     </div>
@@ -130,15 +130,22 @@
     </div>
     <nav class="sidebar-nav">
       <div class="sidebar-nav-label">Main Menu</div>
-      <a href="../index.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🏠</span> Home</a>
-      <a href="dashboard.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📊</span> Dashboard</a>
-      <a href="cctv-feed.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📹</span> CCTV Feed</a>
-      <a href="entry-history.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🚪</span> Entry History</a>
-      <a href="security-threats.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">⚠️</span> Threats <span class="sidebar-nav-badge">3</span></a>
-      <a href="student-profile-system-upgraded.html" class="sidebar-nav-item active"><span class="sidebar-nav-icon">👤</span> Student Profiles</a>
-      <div class="sidebar-nav-label" style="margin-top:14px">Enrolment</div>
-      <a href="../user/face_capture_system.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📸</span> Face Capture</a>
-      <a href="../user/visitor-management.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🪪</span> Visitors</a>
+      <a href="dashboard.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">📊</span> Dashboard
+      </a>
+      <a href="cctv-feed.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">📹</span> CCTV Feed
+      </a>
+      <a href="entry-history.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">🚪</span> Entry History
+      </a>
+      <a href="security-threats.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">⚠️</span> Threats
+        <span class="sidebar-nav-badge" id="threat-badge">3</span>
+      </a>
+      <a href="visitor-management.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">🪪</span> Visitors
+      </a>
     </nav>
     <div class="sidebar-footer">
       <button class="sidebar-footer-btn" id="btn-logout"><span>🚪</span> Logout</button>
@@ -429,3 +436,4 @@ loadProfile();
 </script>
 </body>
 </html>
+

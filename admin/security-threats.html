@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -136,7 +136,7 @@
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
-        <img src="../assets/logo.svg" alt="GeoVision" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <img src="../assets/logo.png" alt="GeoVision" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
         <div class="sidebar-logo-fallback" style="display:none"><span>Geo</span>Vision</div>
       </div>
     </div>
@@ -150,15 +150,22 @@
     </div>
     <nav class="sidebar-nav">
       <div class="sidebar-nav-label">Main Menu</div>
-      <a href="../index.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🏠</span> Home</a>
-      <a href="dashboard.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📊</span> Dashboard</a>
-      <a href="cctv-feed.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📹</span> CCTV Feed</a>
-      <a href="entry-history.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🚪</span> Entry History</a>
-      <a href="security-threats.html" class="sidebar-nav-item active"><span class="sidebar-nav-icon">⚠️</span> Threats <span class="sidebar-nav-badge" id="threat-badge">3</span></a>
-      <a href="student-profile-system-upgraded.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">👤</span> Student Profiles</a>
-      <div class="sidebar-nav-label" style="margin-top:14px">Enrolment</div>
-      <a href="../user/face_capture_system.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">📸</span> Face Capture</a>
-      <a href="../user/visitor-management.html" class="sidebar-nav-item"><span class="sidebar-nav-icon">🪪</span> Visitors</a>
+      <a href="dashboard.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">📊</span> Dashboard
+      </a>
+      <a href="cctv-feed.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">📹</span> CCTV Feed
+      </a>
+      <a href="entry-history.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">🚪</span> Entry History
+      </a>
+      <a href="security-threats.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">⚠️</span> Threats
+        <span class="sidebar-nav-badge" id="threat-badge">3</span>
+      </a>
+      <a href="visitor-management.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">🪪</span> Visitors
+      </a>
     </nav>
     <div class="sidebar-footer">
       <button class="sidebar-footer-btn" id="btn-logout"><span>🚪</span> Logout</button>
@@ -204,37 +211,45 @@
         <div class="threat-stats-right">
           <div class="stats-grid" style="grid-template-columns:1fr 1fr;">
             <div class="stat-card">
-              <div class="stat-card-header">
-                <div class="stat-card-icon" style="background:var(--clr-danger-ghost);color:var(--clr-danger)">🚨</div>
-                <span class="stat-card-trend down">▲ 2</span>
-              </div>
-              <div class="stat-card-value" id="c-active">3</div>
+          <div class="stat-card-header">
+            <div class="stat-card-title-group">
               <div class="stat-card-label">Active Threats</div>
+              <div class="stat-card-icon" style="background:var(--clr-danger-ghost);color:var(--clr-danger)">🚨</div>
             </div>
+            <span class="stat-card-trend down">▲ 2</span>
+          </div>
+          <div class="stat-card-value" id="c-active">3</div>
+        </div>
             <div class="stat-card">
-              <div class="stat-card-header">
-                <div class="stat-card-icon" style="background:var(--clr-warning-ghost);color:var(--clr-warning)">⏳</div>
-                <span class="stat-card-trend neutral">—</span>
-              </div>
-              <div class="stat-card-value" id="c-resolving">2</div>
+          <div class="stat-card-header">
+            <div class="stat-card-title-group">
               <div class="stat-card-label">Being Resolved</div>
+              <div class="stat-card-icon" style="background:var(--clr-warning-ghost);color:var(--clr-warning)">⏳</div>
             </div>
+            <span class="stat-card-trend neutral">—</span>
+          </div>
+          <div class="stat-card-value" id="c-resolving">2</div>
+        </div>
             <div class="stat-card">
-              <div class="stat-card-header">
-                <div class="stat-card-icon" style="background:var(--clr-success-ghost);color:var(--clr-success)">✓</div>
-                <span class="stat-card-trend up">▲ 3</span>
-              </div>
-              <div class="stat-card-value" id="c-resolved">3</div>
+          <div class="stat-card-header">
+            <div class="stat-card-title-group">
               <div class="stat-card-label">Resolved Today</div>
+              <div class="stat-card-icon" style="background:var(--clr-success-ghost);color:var(--clr-success)">✓</div>
             </div>
+            <span class="stat-card-trend up">▲ 3</span>
+          </div>
+          <div class="stat-card-value" id="c-resolved">3</div>
+        </div>
             <div class="stat-card">
-              <div class="stat-card-header">
-                <div class="stat-card-icon" style="background:#f1f1f1;color:#444">🔒</div>
-                <span class="stat-card-trend neutral">On duty</span>
-              </div>
-              <div class="stat-card-value">12</div>
+          <div class="stat-card-header">
+            <div class="stat-card-title-group">
               <div class="stat-card-label">Guards On Duty</div>
+              <div class="stat-card-icon" style="background:#f1f1f1;color:#444">🔒</div>
             </div>
+            <span class="stat-card-trend neutral">On duty</span>
+          </div>
+          <div class="stat-card-value">12</div>
+        </div>
           </div>
           <div class="section-card" style="flex:1">
             <div class="section-card-header">
@@ -533,3 +548,4 @@ setTimeout(simulateThreat, 8000);
 </script>
 </body>
 </html>
+

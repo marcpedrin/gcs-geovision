@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Visitor Management — GeoVision Campus Security</title>
+<meta name="description" content="Register and track campus visitors in real-time with the GeoVision security system.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/shell.css">
+<link rel="stylesheet" href="../assets/leaflet/leaflet.css"/>
+<style>
+/* ── VISITOR LAYOUT ── */
+.visitor-layout {
+  display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:stretch; margin-bottom:24px;
+}
+
+/* ── REGISTER CARD ── */
+.form-card {
+  background:var(--bg-card); border:1px solid var(--border-light);
+  border-radius:var(--radius-lg);
+  transition:background .3s, border-color .3s;
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  padding:40px 24px; text-align:center;
+  min-height:420px;
+}
+
+/* ── VISITOR TABLE ── */
+.visitor-table-wrap {
+  background:var(--bg-card); border:1px solid var(--border-light);
+  border-radius:var(--radius-lg); overflow:hidden; margin-bottom:20px;
+  transition:background .3s, border-color .3s;
+}
+.visitor-table { width:100%; border-collapse:collapse; }
+.visitor-table thead tr { background:var(--bg-badge); }
+.visitor-table th {
+  padding:10px 16px; text-align:left; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.5px; color:var(--text-tertiary);
+}
+.visitor-table td { padding:12px 16px; border-bottom:1px solid var(--border-light); font-size:13px; color:var(--text-primary); }
+.visitor-table tr:last-child td { border-bottom:none; }
+.visitor-table tr:hover td { background:var(--bg-table-row-hover); }
+
+.v-avatar {
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:12px; color:#fff; flex-shrink:0;
+}
+.v-person { display:flex; align-items:center; gap:10px; }
+.v-name   { font-weight:600; color:var(--text-primary); }
+.v-id     { font-size:11px; color:var(--text-tertiary); }
+.badge-on-campus  { background:var(--clr-success-ghost); color:var(--clr-success); padding:3px 10px; border-radius:var(--radius-full); font-size:11px; font-weight:700; }
+.badge-checking-in{ background:var(--clr-warning-ghost); color:var(--clr-warning); padding:3px 10px; border-radius:var(--radius-full); font-size:11px; font-weight:700; }
+.badge-exited     { background:var(--bg-badge); color:var(--text-tertiary); padding:3px 10px; border-radius:var(--radius-full); font-size:11px; font-weight:700; }
+.expire-btn {
+  padding:5px 12px; border-radius:var(--radius-sm);
+  font-size:11px; font-weight:600; color:var(--clr-danger);
+  border:1px solid var(--clr-danger-ghost); cursor:pointer;
+  background:none; transition:all .2s;
+}
+.expire-btn:hover { background:var(--clr-danger); color:#fff; }
+
+/* ── MAP ── */
+.map-card {
+  background:var(--bg-card); border:1px solid var(--border-light);
+  border-radius:var(--radius-lg);
+  transition:background .3s, border-color .3s;
+  display:flex; flex-direction:column; overflow:hidden;
+  min-height: 420px;
+}
+.map-card-header { padding:14px 20px; border-bottom:1px solid var(--border-light); flex-shrink:0; }
+.map-card-header h3 { font-size:14px; font-weight:700; color:var(--text-primary); }
+#visitor-map {
+  height:360px;
+  position:relative;
+}
+
+/* Add visitor button */
+.add-visitor-btn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:13px 28px; background:var(--clr-primary); color:#fff;
+  border-radius:var(--radius-md); font-size:14px; font-weight:700;
+  text-decoration:none; transition:all 0.2s; border:none; cursor:pointer;
+}
+.add-visitor-btn:hover { background:var(--clr-primary-dark); transform:translateY(-2px); box-shadow:0 8px 20px rgba(220,38,38,0.3); }
+
+/* Animation */
+@keyframes rowIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+.v-new-row { animation:rowIn .35s ease; }
+
+/* Map loading state */
+.map-loading {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:8px;
+  background:var(--bg-card); font-size:13px; color:var(--text-secondary);
+  z-index:2;
+}
+.map-loading-spinner {
+  width:32px; height:32px; border:3px solid var(--border-light);
+  border-top-color:var(--clr-primary); border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="app-shell">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="../assets/logo.png" alt="GeoVision"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="sidebar-logo-fallback" style="display:none"><span>Geo</span>Vision</div>
+      </div>
+    </div>
+    <div class="sidebar-profile">
+      <div class="sidebar-avatar">AD</div>
+      <div class="sidebar-profile-info">
+        <div class="sidebar-profile-name">Admin User</div>
+        <div class="sidebar-profile-role">Security Administrator</div>
+      </div>
+      <div class="sidebar-status-dot"></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-nav-label">Main Menu</div>
+      <a href="dashboard.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">📊</span> Dashboard
+      </a>
+      <a href="cctv-feed.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">📹</span> CCTV Feed
+      </a>
+      <a href="entry-history.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">🚪</span> Entry History
+      </a>
+      <a href="security-threats.html" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon">⚠️</span> Threats
+        <span class="sidebar-nav-badge" id="threat-badge">3</span>
+      </a>
+      <a href="visitor-management.html" class="sidebar-nav-item active">
+        <span class="sidebar-nav-icon">🪪</span> Visitors
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="sidebar-footer-btn" id="btn-logout"><span>🚪</span> Logout</button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main-content no-panel">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-breadcrumb">GeoVision / <span>Visitor Management</span></div>
+      </div>
+      <div class="topbar-right">
+        <span id="live-date" style="font-size:12px;color:var(--text-tertiary);margin-right:8px;"></span>
+        <span id="live-clock" style="font-size:13px;font-weight:700;color:var(--text-primary);margin-right:16px;font-family:monospace;"></span>
+        <button class="topbar-btn" id="btn-export">⬇ Export Log</button>
+        <button class="theme-toggle" id="theme-toggle">🌙 Dark Mode</button>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <div class="page-title-area">
+        <h1>Visitor Management</h1>
+        <p>Register new visitors, monitor active guests, and track their live location on campus.</p>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-title-group">
+              <div class="stat-card-label">On Campus Now</div>
+              <div class="stat-card-icon" style="background:var(--clr-success-ghost);color:var(--clr-success)">🪪</div>
+            </div>
+            <span class="stat-card-trend up">▲ Today</span>
+          </div>
+          <div class="stat-card-value" id="v-stat-active">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-title-group">
+              <div class="stat-card-label">Total Visitors Today</div>
+              <div class="stat-card-icon" style="background:var(--bg-badge);color:var(--text-secondary)">📋</div>
+            </div>
+            <span class="stat-card-trend neutral">Today</span>
+          </div>
+          <div class="stat-card-value" id="v-stat-total">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-title-group">
+              <div class="stat-card-label">Awaiting Check-in</div>
+              <div class="stat-card-icon" style="background:var(--clr-warning-ghost);color:var(--clr-warning)">⏳</div>
+            </div>
+            <span class="stat-card-trend neutral">—</span>
+          </div>
+          <div class="stat-card-value" id="v-stat-pending">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-title-group">
+              <div class="stat-card-label">Exited Today</div>
+              <div class="stat-card-icon" style="background:var(--clr-danger-ghost);color:var(--clr-danger)">🚪</div>
+            </div>
+            <span class="stat-card-trend down">▼ Today</span>
+          </div>
+          <div class="stat-card-value" id="v-stat-exited">0</div>
+        </div>
+      </div>
+
+      <!-- Layout: add visitor + map -->
+      <div class="visitor-layout">
+
+        <!-- Add Visitor card -->
+        <div class="form-card">
+          <div style="font-size:48px;margin-bottom:18px;">🪪</div>
+          <h2 style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">Visitor Enrolment</h2>
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:24px;line-height:1.6;">
+            Register a new visitor, capture their details and facial data securely into the GeoVision system.
+          </p>
+          <a href="../user/signup-details.html" class="add-visitor-btn">✚ Add Visitor</a>
+        </div>
+
+        <!-- Live tracker map -->
+        <div class="map-card">
+          <div class="map-card-header">
+            <h3>📍 Live Visitor Tracker</h3>
+            <p style="font-size:12px;color:var(--text-tertiary);margin-top:2px;">
+              🟠 Visitors on campus &nbsp;&nbsp; 🔵 Security guards
+            </p>
+          </div>
+          <div id="visitor-map">
+            <div class="map-loading" id="map-loading">
+              <div class="map-loading-spinner"></div>
+              <span>Loading map…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active visitors table -->
+      <div class="visitor-table-wrap">
+        <div class="section-card-header">
+          <div class="section-card-header-left">
+            <span class="section-card-title">👥 Active Visitors</span>
+            <span class="section-card-count" id="v-table-count">Loading…</span>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="visitor-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Visitor</th>
+                <th>Purpose</th>
+                <th>Host</th>
+                <th>Check-in</th>
+                <th>Gate</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="visitor-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="../assets/leaflet/leaflet.js"></script>
+<script src="../css/shell.js"></script>
+<script>
+/* ═══════════════════════════════════════
+   DATA
+═══════════════════════════════════════ */
+const CAMPUS_CENTER = [12.9121, 77.5221];
+const PURPOSES = ['Meeting Faculty','Parent Visit','Delivery','Guest Lecture','Maintenance','Government Official'];
+const HOSTS    = ['Dr. Ravi Shankar','Prof. Meenakshi Iyer','Mr. Suresh Rao','Dr. Anand Kumar','Ms. Priya Das'];
+const VISITOR_COLORS = ['#7c3aed','#2563eb','#0891b2','#059669','#d97706','#e11d48'];
+const ENTRY_GATES = ['Main Gate','East Entrance','North Gate','Admin Block Entry'];
+
+let visitors    = [];
+let visitorMap  = null;
+let mapMarkers  = {};  // { [visitorId]: { marker, lat, lng } }
+let trackingLoop = null;
+let nextVid     = 1;
+
+/* ═══════════════════════════════════════
+   MAP INITIALISATION
+═══════════════════════════════════════ */
+function initMap() {
+  // Remove loading overlay
+  const loadingEl = document.getElementById('map-loading');
+  if (loadingEl) loadingEl.remove();
+
+  visitorMap = L.map('visitor-map', { zoomControl: true }).setView(CAMPUS_CENTER, 16);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
+  }).addTo(visitorMap);
+
+  // Force Leaflet to recalculate size after flex layout settles
+  setTimeout(() => visitorMap.invalidateSize(), 100);
+
+  // Static guard markers (blue)
+  const guards = ['Guard A', 'Guard B', 'Guard C'];
+  guards.forEach(name => {
+    const lat = CAMPUS_CENTER[0] + (Math.random() - 0.5) * 0.006;
+    const lng = CAMPUS_CENTER[1] + (Math.random() - 0.5) * 0.006;
+    L.marker([lat, lng], {
+      icon: L.divIcon({
+        className: '',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        html: `<div style="width:24px;height:24px;background:#2563eb;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(37,99,235,.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700">G</div>`
+      })
+    }).addTo(visitorMap).bindPopup(`👮 ${name}`);
+  });
+}
+
+/* ═══════════════════════════════════════
+   VISITOR MARKERS
+═══════════════════════════════════════ */
+function makeMarkerIcon(initials) {
+  return L.divIcon({
+    className: '',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    html: `<div style="width:28px;height:28px;background:#f97316;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(249,115,22,.6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700">${initials}</div>`
+  });
+}
+
+function addMarker(v) {
+  if (!visitorMap) return;
+  const lat = CAMPUS_CENTER[0] + (Math.random() - 0.5) * 0.009;
+  const lng = CAMPUS_CENTER[1] + (Math.random() - 0.5) * 0.009;
+  const m = L.marker([lat, lng], { icon: makeMarkerIcon(v.initials) }).addTo(visitorMap);
+  m.bindPopup(`🪪 <b>${v.name}</b><br>📍 ${v.gate}<br>🕐 ${v.checkinTime}<br>🎯 ${v.purpose}`);
+  mapMarkers[v.id] = { marker: m, lat, lng };
+}
+
+function removeMarker(id) {
+  if (mapMarkers[id]) {
+    visitorMap.removeLayer(mapMarkers[id].marker);
+    delete mapMarkers[id];
+  }
+}
+
+function startTracking() {
+  if (trackingLoop) clearInterval(trackingLoop);
+  trackingLoop = setInterval(() => {
+    if (!visitorMap) return;
+    Object.values(mapMarkers).forEach(v => {
+      v.lat += (Math.random() - 0.5) * 0.0007;
+      v.lng += (Math.random() - 0.5) * 0.0007;
+      v.marker.setLatLng([v.lat, v.lng]);
+    });
+  }, 2500);
+}
+
+/* ═══════════════════════════════════════
+   VISITOR OBJECTS
+═══════════════════════════════════════ */
+function makeVisitor(name, phone, purpose, host, dept, idnum) {
+  const initials = name.split(' ').map(w => w[0] || '').join('').toUpperCase().slice(0, 2) || 'VX';
+  return {
+    id:          nextVid++,
+    name, phone, purpose, host,
+    dept:        dept || '—',
+    idnum,
+    initials,
+    color:       VISITOR_COLORS[Math.floor(Math.random() * VISITOR_COLORS.length)],
+    gate:        ENTRY_GATES[Math.floor(Math.random() * ENTRY_GATES.length)],
+    checkinTime: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    status:      'On Campus',
+  };
+}
+
+/* ═══════════════════════════════════════
+   TABLE RENDERING
+═══════════════════════════════════════ */
+function renderTable() {
+  const tbody = document.getElementById('visitor-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  visitors.forEach((v, i) => {
+    const badgeCls = v.status === 'On Campus'     ? 'badge-on-campus'
+                   : v.status === 'Checking In'   ? 'badge-checking-in'
+                   :                                'badge-exited';
+    const tr = document.createElement('tr');
+    if (i === 0) tr.className = 'v-new-row';
+    tr.innerHTML = `
+      <td style="color:var(--text-tertiary);font-weight:600">${String(i + 1).padStart(2, '0')}</td>
+      <td>
+        <div class="v-person">
+          <div class="v-avatar" style="background:${v.color}">${v.initials}</div>
+          <div>
+            <div class="v-name">${v.name}</div>
+            <div class="v-id">${v.idnum}</div>
+          </div>
+        </div>
+      </td>
+      <td>${v.purpose}</td>
+      <td>${v.host}</td>
+      <td style="font-family:monospace;font-size:12px">${v.checkinTime}</td>
+      <td>📍 ${v.gate}</td>
+      <td><span class="${badgeCls}">${v.status}</span></td>
+      <td>${v.status !== 'Exited'
+        ? `<button class="expire-btn" onclick="checkoutVisitor(${v.id})">Check Out</button>`
+        : `<span style="font-size:11px;color:var(--text-tertiary)">Checked out</span>`}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  const active = visitors.filter(v => v.status !== 'Exited').length;
+  const total  = visitors.length;
+  document.getElementById('v-table-count').textContent = `${active} Active, ${total} Total`;
+
+  document.getElementById('v-stat-active').textContent  = visitors.filter(v => v.status === 'On Campus').length;
+  document.getElementById('v-stat-total').textContent   = total;
+  document.getElementById('v-stat-pending').textContent = visitors.filter(v => v.status === 'Checking In').length;
+  document.getElementById('v-stat-exited').textContent  = visitors.filter(v => v.status === 'Exited').length;
+}
+
+function checkoutVisitor(id) {
+  const v = visitors.find(x => x.id === id);
+  if (v) {
+    v.status = 'Exited';
+    removeMarker(id);
+    renderTable();
+    if (typeof showToast === 'function') showToast(`✅ ${v.name} checked out`, 'info');
+  }
+}
+
+/* ═══════════════════════════════════════
+   SEED DATA
+═══════════════════════════════════════ */
+function seedVisitors() {
+  const seeds = [
+    ['Ramesh Kumar',  '+91 98001 11111', 'Meeting Faculty',         'Dr. Ravi Shankar',     'CS Dept',    'KA-DL-2021-0001234'],
+    ['Ananya Shah',   '+91 98001 22222', 'Parent Visit',            'Admin Office',         'Admin Block','MH-5432109876'],
+    ['Courier Exec',  '+91 98001 33333', 'Delivery',                'Admin Block',          'Admin Block','CORP-DELIVERY-001'],
+    ['Dr. Jha',       '+91 98001 44444', 'Guest Lecture',           'Prof. Meenakshi Iyer', 'EC Dept',    'GOV-GJ-19875432'],
+  ];
+  seeds.forEach(([name, phone, purpose, host, dept, idnum]) => {
+    const v = makeVisitor(name, phone, purpose, host, dept, idnum);
+    visitors.push(v);
+    addMarker(v);
+  });
+  // One already exited
+  const exited = makeVisitor('Vijay Thomas', '+91 98001 55555', 'Maintenance', 'Facilities', 'Lab Block', 'MAINT-2024-007');
+  exited.status = 'Exited';
+  visitors.push(exited);
+
+  renderTable();
+}
+
+/* ═══════════════════════════════════════
+   BOOT — window.onload ensures the map
+   container is fully laid out before
+   Leaflet measures its dimensions.
+═══════════════════════════════════════ */
+window.addEventListener('load', function () {
+  if (typeof L === 'undefined') {
+    const loadEl = document.getElementById('map-loading');
+    if (loadEl) loadEl.innerHTML = '<span style="color:var(--clr-danger)">⚠ Map library failed to load.</span>';
+    // Still seed the table even without a map
+    seedVisitors();
+    return;
+  }
+  initMap();
+  seedVisitors();
+  startTracking();
+});
+</script>
+</body>
+</html>
+

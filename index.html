@@ -1,1971 +1,558 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard – GeoVision Campus Security</title>
-    <meta name="description"
-        content="GeoVision Campus Security Dashboard — Real-time overview of campus security, threat alerts, entry feeds, and system health.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <style>
-        /* ============================================================
-   DESIGN TOKENS — BLACK / WHITE / RED
-   ============================================================ */
-        :root {
-            /* Core Palette */
-            --clr-primary: #dc2626;
-            --clr-primary-light: #ef4444;
-            --clr-primary-dark: #b91c1c;
-            --clr-primary-ghost: rgba(220, 38, 38, 0.08);
-            --clr-primary-ghost-hover: rgba(220, 38, 38, 0.14);
-
-            --clr-accent: #f87171;
-            --clr-danger: #dc2626;
-            --clr-danger-ghost: rgba(220, 38, 38, 0.10);
-            --clr-warning: #f59e0b;
-            --clr-warning-ghost: rgba(245, 158, 11, 0.10);
-            --clr-success: #22c55e;
-            --clr-success-ghost: rgba(34, 197, 94, 0.10);
-            --clr-online: #22c55e;
-            --clr-offline: #dc2626;
-
-            /* Surfaces */
-            --bg-body: #f5f5f5;
-            --bg-sidebar: #111111;
-            --bg-card: #ffffff;
-            --bg-panel: #ffffff;
-            --bg-table-row-hover: #fef2f2;
-            --bg-table-row-selected: #fee2e2;
-            --bg-input: #f9f9f9;
-            --bg-badge: #f1f1f1;
-
-            /* Text */
-            --text-primary: #111111;
-            --text-secondary: #555555;
-            --text-tertiary: #999999;
-            --text-inverse: #ffffff;
-            --text-sidebar: #cccccc;
-            --text-sidebar-active: #ffffff;
-
-            /* Borders */
-            --border-light: #e4e4e4;
-            --border-focus: #dc2626;
-
-            /* Shadows */
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.07);
-            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.09);
-            --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.12);
-            --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-            --shadow-card-hover: 0 10px 25px rgba(0, 0, 0, 0.09);
-
-            /* Layout */
-            --sidebar-width: 260px;
-            --panel-width: 320px;
-            --radius-sm: 6px;
-            --radius-md: 10px;
-            --radius-lg: 14px;
-            --radius-xl: 20px;
-            --radius-full: 9999px;
-
-            /* Transitions */
-            --transition-fast: 150ms ease;
-            --transition-normal: 250ms ease;
-            --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* ============================================================
-   RESET & BASE
-   ============================================================ */
-        *,
-        *::before,
-        *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            font-size: 14px;
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-body);
-            color: var(--text-primary);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-
-        button {
-            font-family: inherit;
-            cursor: pointer;
-            border: none;
-            outline: none;
-            background: none;
-        }
-
-        input,
-        select {
-            font-family: inherit;
-            outline: none;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        img {
-            display: block;
-            max-width: 100%;
-        }
-
-
-        /* ============================================================
-   APP SHELL — 3-COLUMN LAYOUT
-   ============================================================ */
-        #app-shell {
-            display: flex;
-            min-height: 100vh;
-        }
-
-
-        /* ============================================================
-   LEFT SIDEBAR
-   ============================================================ */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-sidebar);
-            color: var(--text-sidebar);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            z-index: 100;
-        }
-
-        .sidebar-header {
-            padding: 24px 20px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 4px;
-        }
-
-        .sidebar-logo-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--clr-primary-light), var(--clr-primary-dark));
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: #fff;
-            flex-shrink: 0;
-        }
-
-        .sidebar-logo-text {
-            font-size: 15px;
-            font-weight: 700;
-            color: #fff;
-            line-height: 1.3;
-        }
-
-        .sidebar-logo-text span {
-            display: block;
-            font-size: 11px;
-            font-weight: 400;
-            color: var(--text-sidebar);
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        /* Profile Card */
-        .sidebar-profile {
-            padding: 16px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .sidebar-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-full);
-            background: linear-gradient(135deg, #ef4444, #991b1b);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 14px;
-            color: #fff;
-            flex-shrink: 0;
-        }
-
-        .sidebar-profile-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .sidebar-profile-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: #fff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .sidebar-profile-role {
-            font-size: 11px;
-            color: var(--text-sidebar);
-        }
-
-        .sidebar-status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--clr-online);
-            box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
-            flex-shrink: 0;
-        }
-
-        /* Nav Menu */
-        .sidebar-nav {
-            flex: 1;
-            padding: 12px 10px;
-            overflow-y: auto;
-        }
-
-        .sidebar-nav-label {
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            color: rgba(200, 200, 200, 0.4);
-            padding: 8px 14px 6px;
-        }
-
-        .sidebar-nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: var(--radius-md);
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-sidebar);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            margin-bottom: 2px;
-            position: relative;
-        }
-
-        .sidebar-nav-item:hover {
-            background: rgba(255, 255, 255, 0.07);
-            color: #fff;
-        }
-
-        .sidebar-nav-item.active {
-            background: linear-gradient(135deg, rgba(220, 38, 38, 0.22), rgba(185, 28, 28, 0.16));
-            color: #fff;
-            font-weight: 600;
-        }
-
-        .sidebar-nav-item.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 6px;
-            bottom: 6px;
-            width: 3px;
-            background: var(--clr-primary-light);
-            border-radius: 0 3px 3px 0;
-        }
-
-        .sidebar-nav-icon {
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-
-        .sidebar-nav-badge {
-            margin-left: auto;
-            background: var(--clr-primary);
-            color: #fff;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: var(--radius-full);
-            line-height: 1.4;
-        }
-
-        /* Sidebar Footer */
-        .sidebar-footer {
-            padding: 16px 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .sidebar-footer-btn {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            padding: 8px 10px;
-            border-radius: var(--radius-sm);
-            font-size: 12px;
-            color: var(--text-sidebar);
-            transition: all var(--transition-fast);
-        }
-
-        .sidebar-footer-btn:hover {
-            background: rgba(255, 255, 255, 0.07);
-            color: #fff;
-        }
-
-
-        /* ============================================================
-   MAIN CONTENT AREA
-   ============================================================ */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            margin-right: var(--panel-width);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Top Bar */
-        .topbar {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-light);
-            padding: 12px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            backdrop-filter: blur(10px);
-        }
-
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .topbar-breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: var(--text-tertiary);
-        }
-
-        .topbar-breadcrumb span {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .topbar-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 14px;
-            border-radius: var(--radius-sm);
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            border: 1px solid var(--border-light);
-            background: var(--bg-card);
-            transition: all var(--transition-fast);
-        }
-
-        .topbar-btn:hover {
-            border-color: var(--clr-primary);
-            color: var(--clr-primary);
-            background: var(--clr-primary-ghost);
-        }
-
-        .topbar-btn.danger {
-            background: var(--clr-primary);
-            color: #fff;
-            border-color: var(--clr-primary);
-            font-weight: 600;
-            animation: pulse-danger 2s infinite;
-        }
-
-        .topbar-btn.danger:hover {
-            background: var(--clr-primary-dark);
-        }
-
-        @keyframes pulse-danger {
-
-            0%,
-            100% {
-                box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
-            }
-
-            50% {
-                box-shadow: 0 0 0 6px rgba(220, 38, 38, 0);
-            }
-        }
-
-        /* Dashboard Body */
-        .dashboard-body {
-            flex: 1;
-            padding: 24px 28px 40px;
-        }
-
-        /* Page Title Area */
-        .page-title-area {
-            margin-bottom: 24px;
-        }
-
-        .page-title-area h1 {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--text-primary);
-            letter-spacing: -0.3px;
-        }
-
-        .page-title-area p {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
-
-
-        /* ============================================================
-   STAT CARDS
-   ============================================================ */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            transition: all var(--transition-normal);
-            cursor: default;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-            opacity: 0;
-            transition: opacity var(--transition-normal);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-card-hover);
-        }
-
-        .stat-card:hover::before {
-            opacity: 1;
-        }
-
-        .stat-card:nth-child(1)::before {
-            background: #111111;
-        }
-
-        .stat-card:nth-child(2)::before {
-            background: var(--clr-primary);
-        }
-
-        .stat-card:nth-child(3)::before {
-            background: #444444;
-        }
-
-        .stat-card:nth-child(4)::before {
-            background: var(--clr-success);
-        }
-
-        .stat-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .stat-card-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 17px;
-        }
-
-        .stat-card:nth-child(1) .stat-card-icon {
-            background: #f1f1f1;
-            color: #111111;
-        }
-
-        .stat-card:nth-child(2) .stat-card-icon {
-            background: var(--clr-danger-ghost);
-            color: var(--clr-primary);
-        }
-
-        .stat-card:nth-child(3) .stat-card-icon {
-            background: #f1f1f1;
-            color: #444444;
-        }
-
-        .stat-card:nth-child(4) .stat-card-icon {
-            background: var(--clr-success-ghost);
-            color: var(--clr-success);
-        }
-
-        .stat-card-trend {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: var(--radius-full);
-        }
-
-        .stat-card-trend.up {
-            background: var(--clr-success-ghost);
-            color: var(--clr-success);
-        }
-
-        .stat-card-trend.down {
-            background: var(--clr-danger-ghost);
-            color: var(--clr-danger);
-        }
-
-        .stat-card-trend.neutral {
-            background: var(--bg-badge);
-            color: var(--text-secondary);
-        }
-
-        .stat-card-value {
-            font-size: 30px;
-            font-weight: 800;
-            letter-spacing: -1px;
-            line-height: 1;
-        }
-
-        .stat-card-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-
-        /* ============================================================
-   GRID BELOW STATS  (threat alerts + live activity feed)
-   ============================================================ */
-        .grid-2col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        /* Card wrapper */
-        .section-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-        }
-
-        .section-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 20px;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .section-card-header-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-card-title {
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .section-card-count {
-            font-size: 11px;
-            font-weight: 600;
-            background: var(--bg-badge);
-            color: var(--text-secondary);
-            padding: 3px 10px;
-            border-radius: var(--radius-full);
-        }
-
-        .section-card-count.red {
-            background: var(--clr-danger-ghost);
-            color: var(--clr-primary);
-        }
-
-        .section-link-btn {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--clr-primary);
-            padding: 5px 12px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--clr-primary-ghost);
-            transition: all var(--transition-fast);
-        }
-
-        .section-link-btn:hover {
-            background: var(--clr-primary);
-            color: #fff;
-        }
-
-        .section-card-body {
-            padding: 16px 20px;
-        }
-
-
-        /* ============================================================
-   THREAT ALERTS
-   ============================================================ */
-        .alert-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .alert-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 12px 14px;
-            border-radius: var(--radius-md);
-            border: 1px solid transparent;
-            transition: all var(--transition-fast);
-        }
-
-        .alert-item:hover {
-            border-color: var(--border-light);
-            background: #fafafa;
-        }
-
-        .alert-item.critical {
-            border-left: 3px solid var(--clr-danger);
-        }
-
-        .alert-item.warning {
-            border-left: 3px solid var(--clr-warning);
-        }
-
-        .alert-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px;
-            flex-shrink: 0;
-        }
-
-        .alert-item.critical .alert-icon {
-            background: var(--clr-danger-ghost);
-        }
-
-        .alert-item.warning .alert-icon {
-            background: var(--clr-warning-ghost);
-        }
-
-        .alert-info {
-            flex: 1;
-        }
-
-        .alert-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .alert-meta {
-            font-size: 11px;
-            color: var(--text-tertiary);
-            margin-top: 2px;
-        }
-
-        .alert-badge {
-            padding: 2px 9px;
-            border-radius: var(--radius-full);
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            flex-shrink: 0;
-            align-self: flex-start;
-            margin-top: 2px;
-        }
-
-        .badge-critical {
-            background: var(--clr-danger-ghost);
-            color: var(--clr-danger);
-        }
-
-        .badge-warning {
-            background: var(--clr-warning-ghost);
-            color: var(--clr-warning);
-        }
-
-
-        /* ============================================================
-   LIVE ACTIVITY FEED
-   ============================================================ */
-        .activity-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-light);
-            transition: all var(--transition-fast);
-            cursor: pointer;
-        }
-
-        .activity-item:hover {
-            background: var(--bg-table-row-hover);
-            border-color: var(--clr-accent);
-        }
-
-        .activity-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-full);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 12px;
-            color: #fff;
-            flex-shrink: 0;
-        }
-
-        .activity-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .activity-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .activity-sub {
-            font-size: 11px;
-            color: var(--text-tertiary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .activity-right {
-            text-align: right;
-            flex-shrink: 0;
-        }
-
-        .activity-conf {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--clr-success);
-        }
-
-        .activity-conf.low {
-            color: var(--clr-warning);
-        }
-
-        .activity-time {
-            font-size: 11px;
-            color: var(--text-tertiary);
-        }
-
-
-        /* ============================================================
-   CCTV MINI GRID
-   ============================================================ */
-        .cctv-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .cctv-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1px;
-            background: var(--border-light);
-            padding: 20px;
-            gap: 14px;
-        }
-
-        .cctv-cell {
-            background: #111111;
-            border-radius: var(--radius-md);
-            aspect-ratio: 16/9;
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-
-        .cctv-cell:hover {
-            transform: scale(1.02);
-            box-shadow: var(--shadow-md);
-        }
-
-        .cctv-cell-bg {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
-        }
-
-        .cctv-label {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 6px 10px;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
-            color: #fff;
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-        }
-
-        .cctv-live-dot {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 9px;
-            font-weight: 700;
-            color: #fff;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .live-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--clr-danger);
-            animation: blink 1.2s infinite;
-        }
-
-        .cctv-cell.offline .live-dot {
-            background: #666;
-            animation: none;
-        }
-
-        .cctv-cell.offline .cctv-live-dot::after {
-            content: 'OFFLINE';
-            font-size: 9px;
-            margin-left: 2px;
-        }
-
-        .cctv-cell.offline .cctv-live-dot .live-text {
-            display: none;
-        }
-
-        @keyframes blink {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.2;
-            }
-        }
-
-
-        /* ============================================================
-   QUICK ACTIONS
-   ============================================================ */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
-            margin-bottom: 20px;
-        }
-
-        .quick-action-btn {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 18px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-lg);
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-            transition: all var(--transition-normal);
-            cursor: pointer;
-        }
-
-        .quick-action-btn:hover {
-            border-color: var(--clr-primary);
-            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.12);
-            transform: translateY(-2px);
-            color: var(--clr-primary);
-        }
-
-        .quick-action-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-            background: var(--bg-badge);
-            transition: background var(--transition-fast);
-        }
-
-        .quick-action-btn:hover .quick-action-icon {
-            background: var(--clr-primary-ghost);
-        }
-
-
-        /* ============================================================
-   SYSTEM HEALTH
-   ============================================================ */
-        .health-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
-        }
-
-        .health-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-lg);
-            padding: 16px 18px;
-            transition: all var(--transition-normal);
-        }
-
-        .health-card:hover {
-            box-shadow: var(--shadow-card-hover);
-            transform: translateY(-1px);
-        }
-
-        .health-card-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-
-        .health-card-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .health-status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-
-        .health-status-dot.online {
-            background: var(--clr-success);
-            box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
-        }
-
-        .health-status-dot.offline {
-            background: var(--clr-danger);
-            box-shadow: 0 0 6px rgba(220, 38, 38, 0.5);
-            animation: pulse-dot 1s infinite;
-        }
-
-        .health-status-dot.degraded {
-            background: var(--clr-warning);
-        }
-
-        @keyframes pulse-dot {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.3;
-            }
-        }
-
-        .health-bar-track {
-            height: 6px;
-            background: var(--bg-badge);
-            border-radius: var(--radius-full);
-            overflow: hidden;
-        }
-
-        .health-bar-fill {
-            height: 100%;
-            border-radius: var(--radius-full);
-            transition: width 1s ease;
-        }
-
-        .health-bar-fill.green {
-            background: var(--clr-success);
-        }
-
-        .health-bar-fill.red {
-            background: var(--clr-danger);
-        }
-
-        .health-bar-fill.yellow {
-            background: var(--clr-warning);
-        }
-
-        .health-bar-fill.dark {
-            background: #333;
-        }
-
-        .health-card-value {
-            font-size: 18px;
-            font-weight: 800;
-            margin-top: 10px;
-            color: var(--text-primary);
-        }
-
-        .health-card-sub {
-            font-size: 11px;
-            color: var(--text-tertiary);
-        }
-
-
-        /* ============================================================
-   RIGHT PANEL — SYSTEM OVERVIEW
-   ============================================================ */
-        .right-panel {
-            width: var(--panel-width);
-            background: var(--bg-panel);
-            border-left: 1px solid var(--border-light);
-            position: fixed;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            overflow-y: auto;
-            z-index: 90;
-        }
-
-        .panel-section {
-            padding: 20px;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .panel-section-title {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-tertiary);
-            margin-bottom: 14px;
-        }
-
-        /* Clock */
-        .panel-clock {
-            text-align: center;
-            padding: 24px 20px;
-            border-bottom: 1px solid var(--border-light);
-            background: linear-gradient(180deg, #fafafa 0%, #fff 100%);
-        }
-
-        .panel-clock-time {
-            font-size: 36px;
-            font-weight: 800;
-            letter-spacing: -1.5px;
-            color: var(--text-primary);
-            line-height: 1;
-        }
-
-        .panel-clock-date {
-            font-size: 12px;
-            color: var(--text-tertiary);
-            margin-top: 4px;
-        }
-
-        .panel-live-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 10px;
-            padding: 4px 12px;
-            border-radius: var(--radius-full);
-            background: var(--clr-danger-ghost);
-            color: var(--clr-danger);
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        /* Mini Threat Summary */
-        .threat-summary-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 9px 0;
-        }
-
-        .threat-summary-item:not(:last-child) {
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .threat-summary-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .threat-summary-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .threat-summary-name {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .threat-summary-count {
-            font-size: 12px;
-            font-weight: 700;
-            background: var(--bg-badge);
-            color: var(--text-secondary);
-            padding: 2px 8px;
-            border-radius: var(--radius-full);
-        }
-
-        .threat-summary-count.red {
-            background: var(--clr-danger-ghost);
-            color: var(--clr-danger);
-        }
-
-        /* Recent Scan */
-        .scan-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 0;
-        }
-
-        .scan-item:not(:last-child) {
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .scan-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: var(--radius-full);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 11px;
-            color: #fff;
-            flex-shrink: 0;
-        }
-
-        .scan-info {
-            flex: 1;
-        }
-
-        .scan-name {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .scan-gate {
-            font-size: 11px;
-            color: var(--text-tertiary);
-        }
-
-        .scan-conf {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--clr-success);
-        }
-
-        /* Lockdown Button */
-        .panel-lockdown {
-            padding: 20px;
-        }
-
-        .lockdown-btn {
-            width: 100%;
-            padding: 14px;
-            background: var(--clr-primary);
-            color: #fff;
-            font-size: 14px;
-            font-weight: 700;
-            border-radius: var(--radius-md);
-            border: none;
-            cursor: pointer;
-            letter-spacing: 0.5px;
-            transition: all var(--transition-fast);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .lockdown-btn:hover {
-            background: var(--clr-primary-dark);
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.35);
-            transform: translateY(-1px);
-        }
-
-
-        /* ============================================================
-   TOAST
-   ============================================================ */
-        .toast-container {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2000;
-            display: flex;
-            flex-direction: column-reverse;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .toast {
-            padding: 10px 20px;
-            border-radius: var(--radius-md);
-            font-size: 13px;
-            font-weight: 500;
-            color: #fff;
-            box-shadow: var(--shadow-lg);
-            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
-            max-width: 400px;
-        }
-
-        .toast.success {
-            background: var(--clr-success);
-        }
-
-        .toast.error {
-            background: var(--clr-danger);
-        }
-
-        .toast.info {
-            background: #333;
-        }
-
-        @keyframes toastIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes toastOut {
-            from {
-                opacity: 1;
-            }
-
-            to {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-        }
-
-
-        /* ============================================================
-   SCROLLBAR
-   ============================================================ */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-light);
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-tertiary);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GeoVision — Campus Security</title>
+<meta name="description" content="GeoVision Campus Security Command Centre — Secure Login">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ── RESET ── */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:'Inter',sans-serif}
+
+/* ── BODY / BG ── */
+body{
+  background:#0a0a0a;
+  color:#f0f0f0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:20px;
+  overflow:hidden;
+  position:relative;
+}
+
+/* Ambient glow orbs */
+body::before{
+  content:'';
+  position:fixed;
+  top:-200px; left:-200px;
+  width:600px; height:600px;
+  background:radial-gradient(circle, rgba(220,38,38,.18) 0%, transparent 65%);
+  pointer-events:none;
+  animation:orbFloat 8s ease-in-out infinite alternate;
+}
+body::after{
+  content:'';
+  position:fixed;
+  bottom:-150px; right:-150px;
+  width:500px; height:500px;
+  background:radial-gradient(circle, rgba(220,38,38,.12) 0%, transparent 65%);
+  pointer-events:none;
+  animation:orbFloat 10s ease-in-out infinite alternate-reverse;
+}
+@keyframes orbFloat{
+  from{transform:translate(0,0) scale(1)}
+  to{transform:translate(30px,20px) scale(1.08)}
+}
+
+/* Grid bg texture */
+.bg-grid{
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;
+}
+
+/* ── CARD ── */
+.auth-card{
+  position:relative;
+  width:100%;
+  max-width:420px;
+  background:rgba(20,20,20,.88);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:24px;
+  padding:24px 20px;
+  box-shadow:0 24px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.07);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  animation:cardIn .5s cubic-bezier(.22,.61,.36,1) both;
+}
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(24px) scale(.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* ── LOGO ── */
+.auth-logo{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:20px;
+}
+.auth-logo img{
+  height:120px;
+  max-width:100%;
+  width:auto;
+  object-fit:contain;
+}
+/* ── TABS ── */
+.auth-tabs{
+  display:flex;
+  background:rgba(255,255,255,.05);
+  border-radius:12px;
+  padding:4px;
+  margin-bottom:28px;
+  gap:4px;
+}
+.auth-tab{
+  flex:1;
+  padding:9px;
+  border:none;
+  border-radius:9px;
+  font-size:13px;
+  font-weight:700;
+  font-family:'Inter',sans-serif;
+  cursor:pointer;
+  transition:all .2s;
+  background:transparent;
+  color:rgba(255,255,255,.45);
+}
+.auth-tab.active{
+  background:#dc2626;
+  color:#fff;
+  box-shadow:0 4px 14px rgba(220,38,38,.35);
+}
+
+/* ── FORM PANELS ── */
+.auth-panel{ display:none; animation:fadeIn .3s ease; }
+.auth-panel.active{ display:block; }
+@keyframes fadeIn{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── FORM ELEMENTS ── */
+.auth-section-label{
+  font-size:11px;
+  font-weight:700;
+  color:rgba(255,255,255,.35);
+  text-transform:uppercase;
+  letter-spacing:.7px;
+  margin-bottom:16px;
+}
+
+.form-group{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-bottom:14px;
+}
+.form-label{
+  font-size:11px;
+  font-weight:700;
+  color:rgba(255,255,255,.5);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+.form-input{
+  padding:13px 14px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  color:#fff;
+  font-size:14px;
+  font-family:'Inter',sans-serif;
+  transition:all .2s;
+  -webkit-appearance:none;
+  width:100%;
+}
+.form-input:focus{
+  border-color:#dc2626;
+  box-shadow:0 0 0 3px rgba(220,38,38,.18);
+  outline:none;
+  background:rgba(255,255,255,.08);
+}
+.form-input::placeholder{color:rgba(255,255,255,.22)}
+.form-input.error{ border-color:#dc2626; background:rgba(220,38,38,.07); }
+
+.input-wrap{ position:relative; }
+.input-eye{
+  position:absolute;
+  right:14px; top:50%;
+  transform:translateY(-50%);
+  background:none; border:none;
+  color:rgba(255,255,255,.35);
+  cursor:pointer; font-size:16px;
+  padding:2px;
+  line-height:1;
+  transition:color .2s;
+}
+.input-eye:hover{ color:#dc2626; }
+
+/* ── ERROR MSG ── */
+.auth-error{
+  font-size:12px;
+  color:#f87171;
+  background:rgba(220,38,38,.12);
+  border:1px solid rgba(220,38,38,.25);
+  border-radius:8px;
+  padding:10px 14px;
+  margin-bottom:14px;
+  display:none;
+  animation:fadeIn .2s ease;
+}
+.auth-error.show{ display:block; }
+
+/* ── SUBMIT BUTTON ── */
+.auth-btn{
+  width:100%;
+  padding:14px;
+  background:#dc2626;
+  border:none;
+  border-radius:12px;
+  color:#fff;
+  font-size:15px;
+  font-weight:800;
+  font-family:'Inter',sans-serif;
+  cursor:pointer;
+  transition:all .22s;
+  margin-top:6px;
+  position:relative;
+  overflow:hidden;
+}
+.auth-btn::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,.08) 0%, transparent 50%);
+  pointer-events:none;
+}
+.auth-btn:hover{
+  background:#b91c1c;
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(220,38,38,.4);
+}
+.auth-btn:active{ transform:translateY(0); }
+.auth-btn:disabled{
+  opacity:.5;
+  pointer-events:none;
+}
+.auth-btn-loading::before{
+  content:'';
+  display:inline-block;
+  width:14px; height:14px;
+  border:2px solid rgba(255,255,255,.4);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  margin-right:8px;
+  vertical-align:middle;
+}
+@keyframes spin{ to{transform:rotate(360deg)} }
+
+/* ── DIVIDER ── */
+.auth-divider{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:18px 0;
+}
+.auth-divider::before,.auth-divider::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:rgba(255,255,255,.08);
+}
+.auth-divider span{ font-size:11px; color:rgba(255,255,255,.3); font-weight:600; }
+
+/* ── HINT CHIPS ── */
+.auth-hints{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.auth-hint-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:6px 11px;
+  border-radius:8px;
+  font-size:11px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .18s;
+  border:none;
+  font-family:'Inter',sans-serif;
+}
+.auth-hint-admin{
+  background:rgba(220,38,38,.12);
+  color:#f87171;
+  border:1px solid rgba(220,38,38,.2);
+}
+.auth-hint-student{
+  background:rgba(99,102,241,.12);
+  color:#a5b4fc;
+  border:1px solid rgba(99,102,241,.2);
+}
+.auth-hint-chip:hover{ transform:translateY(-1px); filter:brightness(1.15); }
+
+/* ── FOOTER NOTE ── */
+.auth-footer{
+  font-size:11px;
+  color:rgba(255,255,255,.25);
+  text-align:center;
+  margin-top:20px;
+  line-height:1.6;
+}
+
+/* ── TWO COLUMN GRID ── */
+.form-grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+@media(max-width:380px){
+  .auth-card{ padding:32px 22px; }
+  .form-grid-2{ grid-template-columns:1fr; }
+}
+</style>
 </head>
-
 <body>
-    <div id="app-shell">
-
-        <!-- =================== LEFT SIDEBAR =================== -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <div class="sidebar-logo-icon">🛡️</div>
-                    <div class="sidebar-logo-text">
-                        GeoVision
-                        <span>Campus Security</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="sidebar-profile">
-                <div class="sidebar-avatar" id="sidebar-user-avatar">AD</div>
-                <div class="sidebar-profile-info">
-                    <div class="sidebar-profile-name" id="sidebar-user-name">Admin</div>
-                    <div class="sidebar-profile-role">Security Administrator</div>
-                </div>
-                <div class="sidebar-status-dot"></div>
-            </div>
-
-            <nav class="sidebar-nav">
-                <div class="sidebar-nav-label">Main Menu</div>
-                <a href="index.html" class="sidebar-nav-item active">
-                    <span class="sidebar-nav-icon">🏠</span>
-                    Dashboard
-                </a>
-                <a href="admin/cctv-feed.html" class="sidebar-nav-item">
-                    <span class="sidebar-nav-icon">📹</span>
-                    CCTV Feed
-                </a>
-                <a href="admin/entry-history.html" class="sidebar-nav-item">
-                    <span class="sidebar-nav-icon">🚪</span>
-                    Entry History
-                </a>
-                <a href="admin/security-threats.html" class="sidebar-nav-item">
-                    <span class="sidebar-nav-icon">⚠️</span>
-                    Threats
-                    <span class="sidebar-nav-badge" id="threat-badge">3</span>
-                </a>
-                <a href="admin/student-profile-system-upgraded.html" class="sidebar-nav-item">
-                    <span class="sidebar-nav-icon">👤</span>
-                    Student Profiles
-                </a>
-
-                <div class="sidebar-nav-label" style="margin-top:16px">Enrolment</div>
-                <a href="admin/face_capture_system.html" class="sidebar-nav-item">
-                    <span class="sidebar-nav-icon">📸</span>
-                    Face Capture
-                </a>
-                <a href="user/signup-details.html" class="sidebar-nav-item">
-                    <span class="sidebar-nav-icon">📝</span>
-                    Sign-Up Details
-                </a>
-            </nav>
-
-            <div class="sidebar-footer">
-                <button class="sidebar-footer-btn" id="btn-logout">
-                    <span>🚪</span> Logout
-                </button>
-            </div>
-        </aside>
-
-
-        <!-- =================== MAIN CONTENT =================== -->
-        <main class="main-content" id="main-content">
-
-            <!-- Top Bar -->
-            <div class="topbar">
-                <div class="topbar-left">
-                    <div class="topbar-breadcrumb">
-                        GeoVision / <span>Dashboard</span>
-                    </div>
-                </div>
-                <div class="topbar-right">
-                    <button class="topbar-btn" id="btn-export">⬇ Export Report</button>
-                    <button class="topbar-btn" id="btn-refresh">↺ Refresh</button>
-                    <button class="topbar-btn danger" id="btn-lockdown" onclick="confirmLockdown()">🔒 LOCKDOWN</button>
-                </div>
-            </div>
-
-            <!-- Body -->
-            <div class="dashboard-body">
-
-                <!-- Page Title -->
-                <div class="page-title-area">
-                    <h1>Security Command Centre</h1>
-                    <p>Real-time overview of campus security, entries, threats, and system health.</p>
-                </div>
-
-                <!-- ── STAT CARDS ── -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-card-header">
-                            <div class="stat-card-icon">🚪</div>
-                            <span class="stat-card-trend up" id="stat-trend-entries">▲ 12%</span>
-                        </div>
-                        <div class="stat-card-value" id="stat-entries">247</div>
-                        <div class="stat-card-label">Total Entries Today</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-header">
-                            <div class="stat-card-icon">🚨</div>
-                            <span class="stat-card-trend down" id="stat-trend-threats">▲ 3 New</span>
-                        </div>
-                        <div class="stat-card-value" id="stat-threats">3</div>
-                        <div class="stat-card-label">Active Threats / Red Flags</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-header">
-                            <div class="stat-card-icon">📹</div>
-                            <span class="stat-card-trend neutral" id="stat-trend-cameras">11 / 12</span>
-                        </div>
-                        <div class="stat-card-value" id="stat-cameras">11</div>
-                        <div class="stat-card-label">Active Cameras Online</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-header">
-                            <div class="stat-card-icon">👥</div>
-                            <span class="stat-card-trend up" id="stat-trend-profiles">▲ 8 New</span>
-                        </div>
-                        <div class="stat-card-value" id="stat-profiles">1,842</div>
-                        <div class="stat-card-label">Registered Profiles</div>
-                    </div>
-                </div>
-
-                <!-- ── QUICK ACTIONS ── -->
-                <div class="quick-actions">
-                    <a href="admin/face_capture_system.html" class="quick-action-btn">
-                        <div class="quick-action-icon">📸</div>
-                        <span>Register New Face</span>
-                    </a>
-                    <a href="admin/student-profile-system-upgraded.html" class="quick-action-btn">
-                        <div class="quick-action-icon">🗂️</div>
-                        <span>Manage Profiles</span>
-                    </a>
-                    <a href="admin/entry-history.html" class="quick-action-btn">
-                        <div class="quick-action-icon">📋</div>
-                        <span>Full Entry Logs</span>
-                    </a>
-                    <button class="quick-action-btn" onclick="confirmLockdown()">
-                        <div class="quick-action-icon">🔒</div>
-                        <span>Emergency Lockdown</span>
-                    </button>
-                </div>
-
-                <!-- ── THREATS + LIVE FEED ── -->
-                <div class="grid-2col">
-
-                    <!-- Threat Alerts -->
-                    <div class="section-card">
-                        <div class="section-card-header">
-                            <div class="section-card-header-left">
-                                <span class="section-card-title">⚠️ Threat Alerts</span>
-                                <span class="section-card-count red" id="threat-count">3 Active</span>
-                            </div>
-                            <a href="admin/security-threats.html" class="section-link-btn">View All →</a>
-                        </div>
-                        <div class="section-card-body">
-                            <div class="alert-list" id="alert-list">
-
-                                <div class="alert-item critical">
-                                    <div class="alert-icon">🚫</div>
-                                    <div class="alert-info">
-                                        <div class="alert-title">Unknown face detected — North Gate</div>
-                                        <div class="alert-meta">📍 Gate 1 · 09:42 AM · No match in database</div>
-                                    </div>
-                                    <span class="alert-badge badge-critical">Critical</span>
-                                </div>
-
-                                <div class="alert-item critical">
-                                    <div class="alert-icon">🚷</div>
-                                    <div class="alert-info">
-                                        <div class="alert-title">Blacklisted individual — East Entrance</div>
-                                        <div class="alert-meta">📍 Gate 3 · 10:15 AM · ID: BL-00499</div>
-                                    </div>
-                                    <span class="alert-badge badge-critical">Critical</span>
-                                </div>
-
-                                <div class="alert-item warning">
-                                    <div class="alert-icon">🚶‍♂️</div>
-                                    <div class="alert-info">
-                                        <div class="alert-title">Tailgating detected — Library Entrance</div>
-                                        <div class="alert-meta">📍 Gate 5 · 11:03 AM · 3 people on 1 scan</div>
-                                    </div>
-                                    <span class="alert-badge badge-warning">Warning</span>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Live Activity Feed -->
-                    <div class="section-card">
-                        <div class="section-card-header">
-                            <div class="section-card-header-left">
-                                <span class="section-card-title">🟢 Live Activity Feed</span>
-                                <span class="section-card-count">Real-time</span>
-                            </div>
-                            <a href="admin/entry-history.html" class="section-link-btn">Full Log →</a>
-                        </div>
-                        <div class="section-card-body">
-                            <div class="activity-list" id="activity-list">
-
-                                <div class="activity-item">
-                                    <div class="activity-avatar"
-                                        style="background:linear-gradient(135deg,#dc2626,#991b1b)">AK</div>
-                                    <div class="activity-info">
-                                        <div class="activity-name">Arjun Kumar</div>
-                                        <div class="activity-sub">SRN21CS001 · Main Gate · 11:58 AM</div>
-                                    </div>
-                                    <div class="activity-right">
-                                        <div class="activity-conf">98.7%</div>
-                                        <div class="activity-time">Entry</div>
-                                    </div>
-                                </div>
-
-                                <div class="activity-item">
-                                    <div class="activity-avatar" style="background:linear-gradient(135deg,#555,#222)">PS
-                                    </div>
-                                    <div class="activity-info">
-                                        <div class="activity-name">Priya Sharma</div>
-                                        <div class="activity-sub">SRN21EC045 · Library · 11:55 AM</div>
-                                    </div>
-                                    <div class="activity-right">
-                                        <div class="activity-conf">97.2%</div>
-                                        <div class="activity-time">Entry</div>
-                                    </div>
-                                </div>
-
-                                <div class="activity-item">
-                                    <div class="activity-avatar" style="background:linear-gradient(135deg,#888,#444)">RN
-                                    </div>
-                                    <div class="activity-info">
-                                        <div class="activity-name">Rohit Nair</div>
-                                        <div class="activity-sub">SRN21ME012 · East Gate · 11:51 AM</div>
-                                    </div>
-                                    <div class="activity-right">
-                                        <div class="activity-conf low">72.1%</div>
-                                        <div class="activity-time">Entry</div>
-                                    </div>
-                                </div>
-
-                                <div class="activity-item">
-                                    <div class="activity-avatar"
-                                        style="background:linear-gradient(135deg,#dc2626,#7f1d1d)">SK</div>
-                                    <div class="activity-info">
-                                        <div class="activity-name">Sneha Krishnan</div>
-                                        <div class="activity-sub">STAF-005 · Admin Block · 11:48 AM</div>
-                                    </div>
-                                    <div class="activity-right">
-                                        <div class="activity-conf">99.1%</div>
-                                        <div class="activity-time">Entry</div>
-                                    </div>
-                                </div>
-
-                                <div class="activity-item">
-                                    <div class="activity-avatar" style="background:linear-gradient(135deg,#333,#111)">MT
-                                    </div>
-                                    <div class="activity-info">
-                                        <div class="activity-name">Mohammed Tariq</div>
-                                        <div class="activity-sub">SRN21IT088 · Sports Block · 11:44 AM</div>
-                                    </div>
-                                    <div class="activity-right">
-                                        <div class="activity-conf">96.4%</div>
-                                        <div class="activity-time">Entry</div>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                </div><!-- /.grid-2col -->
-
-                <!-- ── MINI CCTV FEEDS ── -->
-                <div class="cctv-section">
-                    <div class="section-card-header">
-                        <div class="section-card-header-left">
-                            <span class="section-card-title">📹 Live Camera Preview</span>
-                            <span class="section-card-count" id="camera-status-count">11 / 12 Online</span>
-                        </div>
-                        <a href="admin/cctv-feed.html" class="section-link-btn">Full Feed →</a>
-                    </div>
-                    <div class="cctv-grid">
-                        <div class="cctv-cell">
-                            <div class="cctv-cell-bg">🏛️</div>
-                            <div class="cctv-live-dot">
-                                <div class="live-dot"></div><span class="live-text">LIVE</span>
-                            </div>
-                            <div class="cctv-label">📍 Main Gate — CAM-01</div>
-                        </div>
-                        <div class="cctv-cell">
-                            <div class="cctv-cell-bg">📚</div>
-                            <div class="cctv-live-dot">
-                                <div class="live-dot"></div><span class="live-text">LIVE</span>
-                            </div>
-                            <div class="cctv-label">📍 Library Entrance — CAM-02</div>
-                        </div>
-                        <div class="cctv-cell">
-                            <div class="cctv-cell-bg">🏢</div>
-                            <div class="cctv-live-dot">
-                                <div class="live-dot"></div><span class="live-text">LIVE</span>
-                            </div>
-                            <div class="cctv-label">📍 Admin Block — CAM-05</div>
-                        </div>
-                        <div class="cctv-cell offline">
-                            <div class="cctv-cell-bg" style="filter:grayscale(1)">❌</div>
-                            <div class="cctv-live-dot">
-                                <div class="live-dot"></div>
-                            </div>
-                            <div class="cctv-label">📍 Sports Complex — CAM-09 · OFFLINE</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ── SYSTEM HEALTH ── -->
-                <div class="section-card">
-                    <div class="section-card-header">
-                        <div class="section-card-header-left">
-                            <span class="section-card-title">⚙️ System Health</span>
-                        </div>
-                    </div>
-                    <div class="section-card-body">
-                        <div class="health-grid">
-
-                            <div class="health-card">
-                                <div class="health-card-top">
-                                    <span class="health-card-label">AI Recognition Server</span>
-                                    <div class="health-status-dot online" id="dot-ai"></div>
-                                </div>
-                                <div class="health-bar-track">
-                                    <div class="health-bar-fill green" style="width:91%"></div>
-                                </div>
-                                <div class="health-card-value">91%</div>
-                                <div class="health-card-sub">CPU Load · Online</div>
-                            </div>
-
-                            <div class="health-card">
-                                <div class="health-card-top">
-                                    <span class="health-card-label">Database</span>
-                                    <div class="health-status-dot online" id="dot-db"></div>
-                                </div>
-                                <div class="health-bar-track">
-                                    <div class="health-bar-fill dark" style="width:68%"></div>
-                                </div>
-                                <div class="health-card-value">68%</div>
-                                <div class="health-card-sub">Storage Used · Online</div>
-                            </div>
-
-                            <div class="health-card">
-                                <div class="health-card-top">
-                                    <span class="health-card-label">CCTV Network</span>
-                                    <div class="health-status-dot degraded" id="dot-cctv"></div>
-                                </div>
-                                <div class="health-bar-track">
-                                    <div class="health-bar-fill yellow" style="width:92%"></div>
-                                </div>
-                                <div class="health-card-value">11 / 12</div>
-                                <div class="health-card-sub">Cameras Active · 1 Offline</div>
-                            </div>
-
-                            <div class="health-card">
-                                <div class="health-card-top">
-                                    <span class="health-card-label">Gate Control System</span>
-                                    <div class="health-status-dot online" id="dot-gate"></div>
-                                </div>
-                                <div class="health-bar-track">
-                                    <div class="health-bar-fill green" style="width:100%"></div>
-                                </div>
-                                <div class="health-card-value">8 / 8</div>
-                                <div class="health-card-sub">Gates Operational</div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-            </div><!-- /.dashboard-body -->
-        </main>
-
-
-        <!-- =================== RIGHT PANEL =================== -->
-        <aside class="right-panel" id="right-panel">
-
-            <!-- Live Clock -->
-            <div class="panel-clock">
-                <div class="panel-clock-time" id="live-clock">--:--:--</div>
-                <div class="panel-clock-date" id="live-date">Loading...</div>
-                <div class="panel-live-badge">
-                    <div class="live-dot"></div> MONITORING LIVE
-                </div>
-            </div>
-
-            <!-- Threat Summary -->
-            <div class="panel-section">
-                <div class="panel-section-title">Threat Summary</div>
-                <div class="threat-summary-item">
-                    <div class="threat-summary-left">
-                        <div class="threat-summary-dot" style="background:var(--clr-danger)"></div>
-                        <span class="threat-summary-name">Unauthorized Access</span>
-                    </div>
-                    <span class="threat-summary-count red">2</span>
-                </div>
-                <div class="threat-summary-item">
-                    <div class="threat-summary-left">
-                        <div class="threat-summary-dot" style="background:var(--clr-warning)"></div>
-                        <span class="threat-summary-name">Tailgating</span>
-                    </div>
-                    <span class="threat-summary-count">1</span>
-                </div>
-                <div class="threat-summary-item">
-                    <div class="threat-summary-left">
-                        <div class="threat-summary-dot" style="background:#666"></div>
-                        <span class="threat-summary-name">Low Confidence</span>
-                    </div>
-                    <span class="threat-summary-count">4</span>
-                </div>
-                <div class="threat-summary-item">
-                    <div class="threat-summary-left">
-                        <div class="threat-summary-dot" style="background:var(--clr-danger)"></div>
-                        <span class="threat-summary-name">Blacklisted</span>
-                    </div>
-                    <span class="threat-summary-count red">1</span>
-                </div>
-            </div>
-
-            <!-- Recent Scans -->
-            <div class="panel-section">
-                <div class="panel-section-title">Recent Scans</div>
-
-                <div class="scan-item">
-                    <div class="scan-avatar" style="background:linear-gradient(135deg,#dc2626,#991b1b)">AK</div>
-                    <div class="scan-info">
-                        <div class="scan-name">Arjun Kumar</div>
-                        <div class="scan-gate">Main Gate · 11:58 AM</div>
-                    </div>
-                    <span class="scan-conf">98.7%</span>
-                </div>
-
-                <div class="scan-item">
-                    <div class="scan-avatar" style="background:linear-gradient(135deg,#555,#222)">PS</div>
-                    <div class="scan-info">
-                        <div class="scan-name">Priya Sharma</div>
-                        <div class="scan-gate">Library · 11:55 AM</div>
-                    </div>
-                    <span class="scan-conf">97.2%</span>
-                </div>
-
-                <div class="scan-item">
-                    <div class="scan-avatar" style="background:linear-gradient(135deg,#888,#444)">RN</div>
-                    <div class="scan-info">
-                        <div class="scan-name">Rohit Nair</div>
-                        <div class="scan-gate">East Gate · 11:51 AM</div>
-                    </div>
-                    <span class="scan-conf" style="color:var(--clr-warning)">72.1%</span>
-                </div>
-
-                <div class="scan-item">
-                    <div class="scan-avatar" style="background:linear-gradient(135deg,#333,#111)">MT</div>
-                    <div class="scan-info">
-                        <div class="scan-name">Mohammed Tariq</div>
-                        <div class="scan-gate">Sports Block · 11:44 AM</div>
-                    </div>
-                    <span class="scan-conf">96.4%</span>
-                </div>
-
-            </div>
-
-            <!-- Today's Summary -->
-            <div class="panel-section">
-                <div class="panel-section-title">Today at a Glance</div>
-                <div class="threat-summary-item">
-                    <div class="threat-summary-left">
-                        <div class="threat-summary-dot" style="background:#111"></div>
-                        <span class="threat-summary-name">Peak Hour</span>
-                    </div>
-                    <span class="threat-summary-count">09:00 – 10:00</span>
-                </div>
-                <div class="threat-summary-item">
-                    <div class="threat-summary-left">
-                        <div class="threat-summary-dot" style="background:#111"></div>
-                        <span class="threat-summary-name">Busiest Gate</span>
-                    </div>
-                    <span class="threat-summary-count">Main Gate</span>
-                </div>
-                <div class="threat-summary-item">
-                    <div class="threat-summary-left">
-                        <div class="threat-summary-dot" style="background:var(--clr-success)"></div>
-                        <span class="threat-summary-name">Avg Confidence</span>
-                    </div>
-                    <span class="threat-summary-count">96.3%</span>
-                </div>
-            </div>
-
-            <!-- Lockdown -->
-            <div class="panel-lockdown">
-                <button class="lockdown-btn" id="panel-lockdown-btn" onclick="confirmLockdown()">
-                    🔒 EMERGENCY LOCKDOWN
-                </button>
-            </div>
-
-        </aside><!-- /.right-panel -->
-
-    </div><!-- /#app-shell -->
-
-    <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
-
-
-    <script>
-        /* ── LIVE CLOCK ── */
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('live-clock').textContent =
-                now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            document.getElementById('live-date').textContent =
-                now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        }
-        updateClock();
-        setInterval(updateClock, 1000);
-
-
-        /* ── SIMULATED LIVE STAT TICKER ── */
-        let entryCount = 247;
-        setInterval(() => {
-            const rand = Math.random();
-            if (rand > 0.6) {
-                entryCount++;
-                document.getElementById('stat-entries').textContent = entryCount.toLocaleString();
-                showToast(`New entry scanned at ${pickGate()} — ${entryCount} total today`, 'info');
-            }
-        }, 8000);
-
-        function pickGate() {
-            const gates = ['Main Gate', 'East Entrance', 'Library', 'Admin Block', 'Sports Complex'];
-            return gates[Math.floor(Math.random() * gates.length)];
-        }
-
-
-        /* ── TOAST ── */
-        function showToast(msg, type = 'info') {
-            const wrap = document.getElementById('toast-container');
-            const t = document.createElement('div');
-            t.className = `toast ${type}`;
-            t.textContent = msg;
-            wrap.appendChild(t);
-            setTimeout(() => t.remove(), 3200);
-        }
-
-
-        /* ── LOCKDOWN CONFIRM ── */
-        function confirmLockdown() {
-            if (confirm('⚠️ EMERGENCY LOCKDOWN\n\nThis will lock all campus gates and alert security personnel immediately.\n\nAre you sure?')) {
-                showToast('🔒 LOCKDOWN ACTIVATED — All gates sealed. Security alerted.', 'error');
-                document.getElementById('btn-lockdown').textContent = '🔒 LOCKED';
-            }
-        }
-
-
-        /* ── SIDEBAR NAV NAVIGATION ── */
-        document.querySelectorAll('.sidebar-nav-item').forEach(item => {
-            item.addEventListener('click', function () {
-                const href = this.getAttribute('href');
-                if (href && href !== '#') return; // let <a> tags navigate
-                document.querySelectorAll('.sidebar-nav-item').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-
-
-        /* ── REFRESH BUTTON ── */
-        document.getElementById('btn-refresh').addEventListener('click', () => {
-            showToast('Dashboard refreshed — data is up to date.', 'info');
-        });
-
-
-        /* ── EXPORT BUTTON ── */
-        document.getElementById('btn-export').addEventListener('click', () => {
-            showToast('Generating security report… download will start shortly.', 'info');
-        });
-
-
-        /* ── LOGOUT ── */
-        document.getElementById('btn-logout').addEventListener('click', () => {
-            if (confirm('Are you sure you want to logout?')) {
-                showToast('Logging out…', 'info');
-                setTimeout(() => window.location.href = 'index.html', 1500);
-            }
-        });
-    </script>
-
+<div class="bg-grid"></div>
+
+<div class="auth-card">
+  <!-- Logo -->
+  <div class="auth-logo">
+    <img src="assets/logo.png" alt="GeoVision"
+      onerror="this.style.display='none'">
+  </div>
+
+  <!-- Tabs -->
+  <div class="auth-tabs">
+    <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+    <button class="auth-tab"        onclick="switchTab('register')">Register</button>
+  </div>
+
+  <!-- ── LOGIN PANEL ── -->
+  <div class="auth-panel active" id="panel-login">
+    <div class="auth-section-label">Quick Access Demo</div>
+    <div class="auth-hints">
+      <button class="auth-hint-chip auth-hint-admin" onclick="fillAdmin()">
+        🔐 Admin Login
+      </button>
+      <button class="auth-hint-chip auth-hint-student" onclick="fillStudent()">
+        🎓 Student Login
+      </button>
+    </div>
+
+    <div class="auth-error" id="login-error"></div>
+
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <input class="form-input" type="email" id="login-email"
+        placeholder="your@reva.edu.in" autocomplete="email">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <div class="input-wrap">
+        <input class="form-input" type="password" id="login-password"
+          placeholder="Enter password" autocomplete="current-password">
+        <button class="input-eye" type="button" onclick="togglePwd('login-password', this)">👁</button>
+      </div>
+    </div>
+
+    <button class="auth-btn" id="btn-login" onclick="doLogin()">Sign In</button>
+
+    <div class="auth-footer">
+      Secure access • GeoVision Campus Security v3.0
+    </div>
+  </div>
+
+  <!-- ── REGISTER PANEL ── -->
+  <div class="auth-panel" id="panel-register">
+    <div class="auth-error" id="reg-error"></div>
+
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">First Name *</label>
+        <input class="form-input" type="text" id="reg-fname" placeholder="John">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Last Name *</label>
+        <input class="form-input" type="text" id="reg-lname" placeholder="Doe">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Email Address *</label>
+      <input class="form-input" type="email" id="reg-email" placeholder="you@reva.edu.in">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Student / Employee ID *</label>
+      <input class="form-input" type="text" id="reg-id" placeholder="e.g. SRN22CS001">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Phone Number</label>
+      <input class="form-input" type="tel" id="reg-phone" placeholder="+91 98765 43210">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Department</label>
+      <select class="form-input" id="reg-dept">
+        <option value="">Select department…</option>
+        <option>Computer Science & Engineering</option>
+        <option>Electronics & Communication</option>
+        <option>Mechanical Engineering</option>
+        <option>Civil Engineering</option>
+        <option>Business Administration</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Password *</label>
+        <div class="input-wrap">
+          <input class="form-input" type="password" id="reg-password" placeholder="Min 6 chars">
+          <button class="input-eye" type="button" onclick="togglePwd('reg-password',this)">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm *</label>
+        <div class="input-wrap">
+          <input class="form-input" type="password" id="reg-confirm" placeholder="Repeat">
+        </div>
+      </div>
+    </div>
+
+    <button class="auth-btn" id="btn-register" onclick="doRegister()">
+      Create Account &amp; Enrol Face →
+    </button>
+
+    <div class="auth-footer">
+      Already have an account?
+      <a href="#" onclick="switchTab('login')" style="color:#f87171;text-decoration:none">Sign in here</a>
+    </div>
+  </div>
+</div>
+
+<script src="api/db.js"></script>
+<script>
+/* ── TAB SWITCH ───────────────────────────────── */
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) =>
+    t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+  document.getElementById('panel-login').classList.toggle('active', tab === 'login');
+  document.getElementById('panel-register').classList.toggle('active', tab === 'register');
+}
+
+/* ── HELPERS ──────────────────────────────────── */
+function togglePwd(id, btn) {
+  const inp = document.getElementById(id);
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else                         { inp.type = 'password'; btn.textContent = '👁'; }
+}
+
+function showError(panelId, msg) {
+  const el = document.getElementById(panelId);
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('show');
+}
+function clearError(id) { document.getElementById(id).classList.remove('show'); }
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.classList.toggle('auth-btn-loading', loading);
+}
+
+/* ── QUICK-FILL CHIPS ─────────────────────────── */
+function fillAdmin() {
+  document.getElementById('login-email').value    = 'admin@reva.edu.in';
+  document.getElementById('login-password').value = 'Admin';
+}
+function fillStudent() {
+  document.getElementById('login-email').value    = 'student@reva.edu.in';
+  document.getElementById('login-password').value = 'Student';
+}
+
+/* ── LOGIN ────────────────────────────────────── */
+async function doLogin() {
+  clearError('login-error');
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) { showError('login-error', 'Please enter your email and password.'); return; }
+
+  setLoading('btn-login', true);
+  try {
+    const result = await GeoVisionDB.authenticate(email, password);
+    if (!result.ok) { showError('login-error', result.error); return; }
+    // Route by role
+    if (result.user.role === 'admin') {
+      window.location.href = 'admin/dashboard.html';
+    } else {
+      window.location.href = 'user/profile.html';
+    }
+  } catch (e) {
+    showError('login-error', 'Login failed. Please try again.');
+    console.error(e);
+  } finally {
+    setLoading('btn-login', false);
+  }
+}
+
+/* ── REGISTER ─────────────────────────────────── */
+async function doRegister() {
+  clearError('reg-error');
+  const fname    = document.getElementById('reg-fname').value.trim();
+  const lname    = document.getElementById('reg-lname').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const sid      = document.getElementById('reg-id').value.trim();
+  const phone    = document.getElementById('reg-phone').value.trim();
+  const dept     = document.getElementById('reg-dept').value;
+  const password = document.getElementById('reg-password').value;
+  const confirm  = document.getElementById('reg-confirm').value;
+
+  if (!fname || !lname) { showError('reg-error','Please enter your full name.'); return; }
+  if (!email || !email.includes('@')) { showError('reg-error','Please enter a valid email.'); return; }
+  if (!sid)  { showError('reg-error','Please enter your student/employee ID.'); return; }
+  if (password.length < 6) { showError('reg-error','Password must be at least 6 characters.'); return; }
+  if (password !== confirm) { showError('reg-error','Passwords do not match.'); return; }
+
+  setLoading('btn-register', true);
+  try {
+    const result = await GeoVisionDB.users.register({
+      email,
+      password,
+      name:      `${fname} ${lname}`,
+      studentId: sid,
+      phone,
+      dept,
+      year: '',
+    });
+    if (!result.ok) { showError('reg-error', result.error); return; }
+    // Go to face enrolment first
+    window.location.href = 'user/face_capture_system.html?mode=register';
+  } catch (e) {
+    showError('reg-error','Registration failed. Please try again.');
+    console.error(e);
+  } finally {
+    setLoading('btn-register', false);
+  }
+}
+
+/* ── KEYBOARD ENTER ───────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (document.getElementById('panel-login').classList.contains('active')) doLogin();
+  else doRegister();
+});
+
+/* ── AUTH GUARD (don't show login if already signed in) ── */
+window.addEventListener('load', () => {
+  const u = GeoVisionDB.currentUser();
+  if (u) {
+    window.location.href = u.role === 'admin' ? 'admin/dashboard.html' : 'user/profile.html';
+  }
+});
+</script>
 </body>
-
 </html>

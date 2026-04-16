@@ -1,6 +1,8 @@
-# Campus Security & Facial Recognition System
+# GeoVision Campus Security Command Centre
 
-A web-based campus security system with facial recognition for student/staff identification, CCTV monitoring, entry logging, and threat management.
+A web-based campus security system with facial recognition for student/staff identification, CCTV monitoring, entry logging, and threat management. 
+
+Powered by a local, browser-based IndexedDB database, it features full Role-Based Access Control (RBAC) separating Security Administrators from normal Users (Students/Staff) along with a responsive mobile-first UI for students.
 
 ---
 
@@ -9,61 +11,85 @@ A web-based campus security system with facial recognition for student/staff ide
 ```
 GCS - GeoVision/
 │
-├── index.html                  # LOGIN — Main entry point
+├── index.html                  # LOGIN / APP ROOT
 ├── README.md                   # Project documentation
 ├── CHANGELOG.md                # Version history
 │
+├── api/
+│   └── db.js                   # IndexedDB Database engine for Users, Logs, and Visitors
+│
 ├── css/
-│   └── style.css               # Base wireframe stylesheet (borders & spacing)
+│   ├── shell.css               # Base UI styles, variables, admin shell
+│   └── shell.js                # Core UI interactions for the admin shell
 │
 ├── user/
-│   ├── signup-details.html     # Enter student/staff details
-│   ├── capture-face.html       # Capture facial data
-│   └── display-details.html    # Display student details
+│   ├── user-shell.css          # Mobile-first design system for Student Portal
+│   ├── profile.html            # Main student dashboard
+│   ├── my-entries.html         # Student entry history
+│   ├── face_capture_system.html# Facial data enrolment
+│   └── signup-details.html     # Visitor details collection
 │
 └── admin/
     ├── dashboard.html           # Admin site hub
-    ├── cctv-feed.html           # CCTV feed layout
-    ├── entry-history.html       # Entry history layout
-    └── security-threats.html    # Security threats layout
+    ├── visitor-management.html  # Visitor log and Check-in routing
+    ├── cctv-feed.html           # Live CCTV grid
+    ├── entry-history.html       # Global entry history log
+    └── security-threats.html    # Manage and resolve campus threats
 ```
 
 ---
 
-## Usage
+## 🚀 How to Run the App
 
-### Getting Started
+This application relies on browser storage (IndexedDB & SessionStorage). For the database API and cross-page integrations to work seamlessly, **the app must be run securely on a local web server**.
 
-1. Open `index.html` in any web browser to reach the **Login** page.
-2. From the Login page, navigate to either:
-   - **User flow** — Click "Login (User)" or "Sign Up" to begin the user registration process.
-   - **Admin flow** — Click "Login (Admin)" to access the admin dashboard.
+### Step 1: Start a Local Server
+Do **not** just double-click the HTML file. Instead, use a local server:
 
-### User Flow
+- **Option A (VS Code):** Use the [Live Server Extension](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer). Right-click `index.html` and select **"Open with Live Server"**.
+- **Option B (Node.js):**
+  ```bash
+  npx serve .
+  ```
+- **Option C (Python):**
+  ```bash
+  python -m http.server 8000
+  ```
 
-| Step | Page | Description |
-|------|------|-------------|
-| 1 | `index.html` | Login or choose to sign up |
-| 2 | `user/signup-details.html` | Enter personal and academic details |
-| 3 | `user/capture-face.html` | Capture facial data via camera |
-| 4 | `user/display-details.html` | Review registered profile and face data |
+### Step 2: Open the Application
+Navigate to the local URL (e.g. `http://127.0.0.1:5500/index.html` or `http://localhost:8000/index.html`).
 
-### Admin Flow
+### Step 3: Login Credentials
+The local database gets seeded automatically upon first load. Use the following built-in accounts:
 
-| Step | Page | Description |
-|------|------|-------------|
-| 1 | `index.html` | Login as administrator |
-| 2 | `admin/dashboard.html` | View quick stats and navigate to sub-pages |
-| 3 | `admin/cctv-feed.html` | Monitor live CCTV camera feeds |
-| 4 | `admin/entry-history.html` | Browse and filter campus entry records |
-| 5 | `admin/security-threats.html` | Review and resolve security threats |
+**🛡️ Administrator Login:**
+- **Email:** `admin@reva.edu.in`
+- **Password:** `Admin`
 
-### Notes
+**🎓 Student (User) Login:**
+- **Email:** `student@reva.edu.in`
+- **Password:** `Student`
 
-- All pages are **static HTML wireframes** with no backend logic.
-- Buttons and links navigate between pages using relative `href` paths.
-- The single `css/style.css` file provides basic borders and spacing for layout structure.
-- No JavaScript, frameworks, or external dependencies are used.
+*(Or you can click the quick-login chips on the sign-in screen to auto-fill these credentials)*
+
+---
+
+## User Roles & Flows
+
+### Admin Flow (Command Centre)
+The admin view is heavily inspired by high-end security dashboards. It displays aggregate data, live feeds, and handles campus visitors.
+1. Gain access to the global **Dashboard** layout and metrics.
+2. Monitor **Live CCTV**.
+3. View **Global Entry History** (across all students and staff).
+4. Identify & Resolve **Security Threats**.
+5. Add and track **Visitor Check-ins**, which integrates with the Face Enrolment camera.
+
+### Student Flow (Mobile Portal)
+The user side is a **mobile-first progressive web app style** interface centered around their personal profile.
+1. Students login and are routed directly to the **Profile** dashboard.
+2. They can update profile details, avatar, and check their overall **Face Enrolment status**.
+3. If not enrolled, they route to **Face ID Enrolment** to capture multiple facial angles.
+4. They can monitor their personal **Gate Entries & Exits**.
 
 ---
 
@@ -85,7 +111,7 @@ git pull origin main
 ```
 
 ### 3. Make Changes & Edit
-You can now edit the HTML/CSS files or any other document. Save your work.
+You can now edit the files or any other document. Save your work.
 
 ### 4. Upload Your Changes (Commit & Push)
 Once you're done editing, follow these steps to upload your changes for the team to see:
