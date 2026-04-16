@@ -1,61 +1,609 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CCTV Feed - Admin</title>
-    <link rel="stylesheet" href="../css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CCTV AI Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f14;
+      --sidebar-bg: #111318;
+      --card-bg: #161a22;
+      --card-border: #1f2430;
+      --accent: #00d4b4;
+      --accent2: #1de9c6;
+      --text-primary: #e8eaf0;
+      --text-secondary: #8b90a0;
+      --alert: #ff4757;
+      --warning: #ffa502;
+      --normal: #2ed573;
+      --badge-bg: #1f2430;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 260px;
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      padding: 28px 0 24px;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+    }
+
+    .brand {
+      padding: 0 24px 28px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .brand h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+    }
+    .brand span {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    nav {
+      padding: 24px 16px 0;
+      flex: 1;
+    }
+    .nav-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      padding: 0 8px 12px;
+    }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      padding: 12px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 4px;
+      text-align: left;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-btn:hover { background: var(--card-bg); color: var(--text-primary); }
+    .nav-btn.active {
+      background: linear-gradient(90deg, rgba(0,212,180,0.15), transparent);
+      color: var(--accent);
+      border-left: 3px solid var(--accent);
+    }
+
+    .sidebar-status {
+      margin: 24px 16px 0;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .sidebar-status .label { font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 4px; }
+    .sidebar-status strong { font-size: 1.05rem; color: var(--accent); }
+    .sidebar-status p { font-size: 0.72rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.4; }
+
+    /* ── MAIN ── */
+    .main {
+      margin-left: 260px;
+      flex: 1;
+      padding: 32px 36px;
+      min-height: 100vh;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .topbar-left h2 {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    .topbar-left p { color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px; }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .search-wrap {
+      position: relative;
+    }
+    .search-wrap input {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 30px;
+      padding: 10px 18px 10px 40px;
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      width: 260px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .search-wrap input:focus { border-color: var(--accent); }
+    .search-wrap .ico {
+      position: absolute;
+      left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    .icon-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-secondary);
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: color 0.2s, background 0.2s;
+    }
+    .icon-btn:hover { color: var(--accent); background: var(--card-border); }
+
+    /* ── FEED SECTION ── */
+    .feed-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .feed-header h3 { font-size: 1.5rem; font-weight: 700; }
+    .feed-header p { color: var(--text-secondary); font-size: 0.82rem; margin-top: 4px; }
+
+    .feed-actions { display: flex; gap: 10px; }
+    .btn-outline {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-accent {
+      background: var(--accent);
+      border: none;
+      color: #0d0f14;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-accent:hover { opacity: 0.85; }
+
+    /* ── CAMERA GRID ── */
+    .camera-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .camera-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+    .camera-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .feed-view {
+      width: 100%;
+      height: 200px;
+      background: radial-gradient(ellipse at 40% 40%, #0e2a2a 0%, #080c10 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .live-badge {
+      position: absolute;
+      top: 12px; left: 12px;
+      background: rgba(13,15,20,0.75);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      background: var(--alert);
+      border-radius: 50%;
+      animation: pulse 1.4s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .zone-tag {
+      background: rgba(13,15,20,0.7);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--text-secondary);
+    }
+
+    .card-body { padding: 16px; }
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .card-top h4 { font-size: 1rem; font-weight: 600; }
+    .card-time { font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 12px; }
+
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .badge-alert { background: rgba(255,71,87,0.15); color: var(--alert); border: 1px solid rgba(255,71,87,0.3); }
+    .badge-warning { background: rgba(255,165,2,0.12); color: var(--warning); border: 1px solid rgba(255,165,2,0.3); }
+    .badge-normal { background: rgba(46,213,115,0.12); color: var(--normal); border: 1px solid rgba(46,213,115,0.3); }
+
+    .card-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .stat {
+      background: var(--badge-bg);
+      border-radius: 8px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+    .stat-label { font-size: 0.6rem; color: var(--text-secondary); letter-spacing: 0.08em; text-transform: uppercase; }
+    .stat-value { font-size: 0.95rem; font-weight: 700; margin-top: 2px; }
+
+    footer {
+      margin-top: 40px;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid var(--card-border);
+    }
+  </style>
 </head>
 <body>
 
-    <div class="page-container">
-        <div class="page-header">
-            <h1>CCTV Feed</h1>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>Aishmaya</h1>
+      <span>CCTV AI DASHBOARD</span>
+    </div>
+    <nav aria-label="Primary">
+      <div class="nav-label">MONITORING</div>
+      <button class="nav-btn active">
+        <span>&#9776;</span> CCTV Feed
+      </button>
+      <button class="nav-btn">
+        <span>&#9776;</span> Entry History
+      </button>
+      <button class="nav-btn">
+        <span>&#9711;</span> Security Threats
+      </button>
+      <button class="nav-btn">
+        <span>&#9099;</span> Visitor Entry
+      </button>
+    </nav>
+    <div class="sidebar-status">
+      <div class="label">Live status</div>
+      <strong>6 cameras online</strong>
+      <p>AI inference active, anomaly scan every 3 seconds.</p>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Campus Surveillance</h2>
+        <p>Select a feed to expand and inspect alerts faster.</p>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <span class="ico">&#128269;</span>
+          <input type="text" aria-label="Search cameras" placeholder="Search location, camera, or alert" />
         </div>
-
-        <nav>
-            <a href="dashboard.html">Dashboard</a>
-            <a href="entry-history.html">Entry History</a>
-            <a href="security-threats.html">Security Threats</a>
-            <a href="../index.html">Logout</a>
-        </nav>
-
-        <div class="section">
-            <h2>Live Camera Feeds</h2>
-
-            <div class="section">
-                <h3>Camera 1 — Main Gate</h3>
-                <div class="placeholder-box">
-                    [ Live Feed Placeholder — Main Gate ]
-                </div>
-            </div>
-
-            <div class="section">
-                <h3>Camera 2 — Building A Entrance</h3>
-                <div class="placeholder-box">
-                    [ Live Feed Placeholder — Building A ]
-                </div>
-            </div>
-
-            <div class="section">
-                <h3>Camera 3 — Parking Lot</h3>
-                <div class="placeholder-box">
-                    [ Live Feed Placeholder — Parking Lot ]
-                </div>
-            </div>
-
-            <div class="section">
-                <h3>Camera 4 — Library</h3>
-                <div class="placeholder-box">
-                    [ Live Feed Placeholder — Library ]
-                </div>
-            </div>
-        </div>
-
-        <div class="page-footer">
-            <p>Campus Security System &copy; 2026 — Admin Panel</p>
-        </div>
+        <button class="icon-btn" title="Notifications">&#128276;</button>
+        <button class="icon-btn" title="Switch theme">&#9790;</button>
+      </div>
     </div>
 
-</body>
-</html>
+    <!-- FEED SECTION -->
+    <div class="feed-header">
+      <div>
+        <h3>Select a Feed to Expand</h3>
+        <p>Structured groups for entrance, library, parking, and residential corridors.</p>
+      </div>
+      <div class="feed-actions">
+        <button class="btn-outline">Filter Zones</button>
+        <button class="btn-accent">Open Threat Review</button>
+      </div>
+    </div>
+
+    <!-- CAMERA GRID -->
+    <div class="camera-grid">
+
+      <!-- Main Entrance 1 -->
+      <div class="camera-card">
+        <div class="feed-view">
+          <div class="live-badge"><span class="live-dot"></span> Live feed</div>
+          <div class="zone-tag">MAIN ENTRANCE</div>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <h4>Camera 1 — Main Gate</h4>
+            <span class="badge badge-normal">Normal</span>
+          </div>
+          <div class="card-time">Last event · 10:25:02</div>
+          <div class="card-stats">
+            <div class="stat">
+              <div class="stat-label">People</div>
+              <div class="stat-value">05</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Motion</div>
+              <div class="stat-value">Low</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Alerts</div>
+              <div class="stat-value">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lobby 2 -->
+      <div class="camera-card">
+        <div class="feed-view">
+          <div class="live-badge"><span class="live-dot"></span> Live feed</div>
+          <div class="zone-tag">CENTRAL LOBBY</div>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <h4>Camera 2 — Lobby</h4>
+            <span class="badge badge-warning">Motion</span>
+          </div>
+          <div class="card-time">Last event · 10:24:17</div>
+          <div class="card-stats">
+            <div class="stat">
+              <div class="stat-label">People</div>
+              <div class="stat-value">03</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Motion</div>
+              <div class="stat-value">Medium</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Alerts</div>
+              <div class="stat-value">1</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parking 3 -->
+      <div class="camera-card">
+        <div class="feed-view">
+          <div class="live-badge"><span class="live-dot"></span> Live feed</div>
+          <div class="zone-tag">PARKING LOT</div>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <h4>Camera 3 — Parking</h4>
+            <span class="badge badge-alert">Alert</span>
+          </div>
+          <div class="card-time">Last event · 10:22:09</div>
+          <div class="card-stats">
+            <div class="stat">
+              <div class="stat-label">People</div>
+              <div class="stat-value">07</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Motion</div>
+              <div class="stat-value">High</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Alerts</div>
+              <div class="stat-value">3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Library 4 -->
+      <div class="camera-card">
+        <div class="feed-view">
+          <div class="live-badge"><span class="live-dot"></span> Live feed</div>
+          <div class="zone-tag">LIBRARY HALL</div>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <h4>Camera 4 — Library</h4>
+            <span class="badge badge-normal">Normal</span>
+          </div>
+          <div class="card-time">Last event · 10:20:41</div>
+          <div class="card-stats">
+            <div class="stat">
+              <div class="stat-label">People</div>
+              <div class="stat-value">12</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Motion</div>
+              <div class="stat-value">Low</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Alerts</div>
+              <div class="stat-value">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Corridor 5 -->
+      <div class="camera-card">
+        <div class="feed-view">
+          <div class="live-badge"><span class="live-dot"></span> Live feed</div>
+          <div class="zone-tag">NORTH CORRIDOR</div>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <h4>Camera 5 — Corridor</h4>
+            <span class="badge badge-warning">Motion</span>
+          </div>
+          <div class="card-time">Last event · 10:19:33</div>
+          <div class="card-stats">
+            <div class="stat">
+              <div class="stat-label">People</div>
+              <div class="stat-value">02</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Motion</div>
+              <div class="stat-value">Medium</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Alerts</div>
+              <div class="stat-value">1</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hostel Gate 6 -->
+      <div class="camera-card">
+        <div class="feed-view">
+          <div class="live-badge"><span class="live-dot"></span> Live feed</div>
+          <div class="zone-tag">HOSTEL GATE</div>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <h4>Camera 6 — Hostel Entry</h4>
+            <span class="badge badge-normal">Normal</span>
+          </div>
+          <div class="card-time">Last event · 10:18:02</div>
+          <div class="card-stats">
+            <div class="stat">
+              <div class="stat-label">People</div>
+              <div class="stat-value">04</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Motion</div>
+              <div class="stat-value">Low</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Alerts</div>
+              <div class="stat-value">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Back Gate 7 -->
+      <div class="camera-card">
+        <div class="feed-view">
+          <div class="live-badge"><span class="live-dot"></span> Live feed</div>
+          <div class="zone-tag">SERVICE BACK GATE</div>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <h4>Camera 7 — Service Entry</h4>
+            <span class="badge badge-warning">Motion</span>
+          </div>
+          <div class="card-time">Last event · 10:17:18</div>
+          <div class="card-stats">
+            <div class="stat">
+              <div class="stat-label">People</div>
+              <div class="stat-value">01</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Motion</div>
+              <div class="stat-value">High</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Alerts</div>
+              <div class="stat-value">2</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Storage 8 -->
+      <div class="camera-card">
+        <div class="feed-view">
+          <div class="live-badge"><span class="live-dot"></span> Live feed</div>
+          <div class="zone-tag">STORAGE YARD</div>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <h4>Camera 8 — Storage</h4>
+            <span class="badge badge-alert">Alert</span>
+          </div>
+          <div class="card-time">Last event · 10:16:44</div>
+          <div class="card-stats">
+            <div class="stat">
+              <div class="stat-label">People</div>
+              <div class="stat-value">00</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Motion</div>
+              <div class="stat-value">Low</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Alerts</div>
+              <div class="stat-value">4</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
