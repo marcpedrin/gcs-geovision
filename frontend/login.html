@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h2>University Portal</h2>
+
+        <input type="text" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+
+        <div class="buttons">
+            <button class="login-btn" onclick="goProfile()">LOGIN</button>
+            <button class="signup-btn" onclick="goSignup()">SIGN UP</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function goProfile() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    if (!email || !password) {
+        alert("Please fill all fields 😭");
+        return;
+    }
+
+    fetch("http://127.0.0.1:5001/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            localStorage.setItem("user", JSON.stringify(data));
+            window.location.href = "profile.html";
+        } else {
+            alert("Invalid credentials 💔");
+        }
+    })
+    .catch(() => {
+        alert("Server not running 🚨");
+    });
+}
+
+// ✅ FIXED SIGNUP (IMPORTANT CHANGE)
+function goSignup() {
+    window.location.href = "signup.html";
+}
+</script>
+
+</body>
+</html> 
+<!--updated-->

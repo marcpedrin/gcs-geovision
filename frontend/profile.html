@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="card">
+    <h2>Profile</h2>
+
+    <p><strong>Name:</strong> <span id="name"></span></p>
+    <p><strong>Email:</strong> <span id="email"></span></p>
+    <p><strong>Role:</strong> <span id="role"></span></p>
+    <p><strong>ID:</strong> <span id="id"></span></p>
+
+    <button onclick="logout()">LOGOUT</button>
+</div>
+
+<script>
+
+document.getElementById("name").innerText = localStorage.getItem("name");
+document.getElementById("email").innerText = localStorage.getItem("email");
+document.getElementById("role").innerText = localStorage.getItem("role");
+document.getElementById("id").innerText = localStorage.getItem("id");
+
+
+function logout() {
+    localStorage.clear();
+    window.location.href = "http://127.0.0.1:5500/frontend/login.html";
+}
+</script>
+
+</body>
+</html>
+<!--updated-->
