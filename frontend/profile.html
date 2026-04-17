@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GeoVision - Student Profile</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg">
+
+<header class="topbar">
+  <h2>GEOVISION CAMPUS PORTAL</h2>
+  <h3>Student Profile</h3>
+</header>
+
+<div class="container">
+
+  <!-- PROFILE CARD -->
+  <div class="card profile-card">
+    <div class="avatar big"></div>
+
+    <div>
+      <h3 id="name">Loading...</h3>
+      <p>ID: <span id="id">---</span></p>
+      <span class="status">Verified</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="card stats">
+    <h3>System Overview</h3>
+    <p>Number of Students: 1200+</p>
+    <p>Total Verified: 1150</p>
+    <p>Total Threats: 3</p>
+  </div>
+
+  <!-- DETAILS -->
+  <div class="card details">
+    <h3>Detailed Information</h3>
+    <p><strong>Designation:</strong> <span id="role"></span></p>
+    <p><strong>DOB:</strong> <span id="dob"></span></p>
+    <p><strong>Address:</strong> <span id="address"></span></p>
+    <p><strong>Facial Data:</strong> Verified ✔</p>
+  </div>
+
+  <!-- LOGS -->
+  <div class="card log">
+    <h3>Entry Logs (Last 30 Days)</h3>
+
+    <table>
+      <tr>
+        <th>Date/Time</th>
+        <th>Location</th>
+        <th>Status</th>
+      </tr>
+      <tr>
+        <td>2024-01-01</td>
+        <td>Main Gate</td>
+        <td class="ok">Match</td>
+      </tr>
+      <tr>
+        <td>2024-01-02</td>
+        <td>Main Gate</td>
+        <td class="bad">Unrecognized</td>
+      </tr>
+    </table>
+
+    <div class="btn-group">
+      <button class="btn blue">Update Student Details</button>
+      <button class="btn blue">Update Facial Data</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- SCRIPT -->
+<script>
+const user = JSON.parse(localStorage.getItem("geovisionUser"));
+
+if (!user) {
+  alert("No user found. Redirecting to login...");
+  window.location.href = "login.html";
+} else {
+  document.getElementById("name").innerText = user.name || "No Name";
+  document.getElementById("id").innerText = user.id || "Not Set";
+  document.getElementById("role").innerText = user.role || "Student";
+  document.getElementById("dob").innerText = user.dob || "Not Provided";
+  document.getElementById("address").innerText = user.address || "Not Provided";
+}
+</script>
+
+</body>
+</html>

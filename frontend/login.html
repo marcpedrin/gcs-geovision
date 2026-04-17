@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GeoVision - Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg">
+
+<div class="glass-card">
+
+  <div class="logo">GEOVISION</div>
+  <h2>UNIVERSITY / CAMPUS PORTAL</h2>
+
+  <form id="loginForm">
+
+    <div class="input-group">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="Your Email Address" required>
+    </div>
+
+    <div class="input-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Secure Password" required>
+    </div>
+
+    <div class="btn-group">
+
+      <button class="btn red" type="submit">LOGIN</button>
+
+      <button class="btn blue" type="button"
+        onclick="window.location.href='signup.html'">
+        SIGN UP
+      </button>
+
+    </div>
+
+    <p class="link" onclick="openForgot()">Forgot Password?</p>
+    <p class="link" onclick="openLearn()">First Time User? Learn More</p>
+
+  </form>
+
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- FORGOT PASSWORD -->
+<div id="forgotModal" class="modal">
+  <div class="modal-box">
+    <h3>Reset Password</h3>
+    <p>Enter your registered email</p>
+
+    <input type="email" id="resetEmail" placeholder="Email">
+
+    <button class="btn blue" onclick="sendResetLink()">Send Link</button>
+    <button class="btn red" onclick="closeForgot()">Close</button>
+  </div>
+</div>
+
+<!-- LEARN MORE -->
+<div id="learnModal" class="modal">
+  <div class="modal-box">
+    <h3>Registration Guide</h3>
+
+    <ul>
+      <li>Use official college email only</li>
+      <li>Verify email before password setup</li>
+      <li>Upload clear profile photo</li>
+      <li>Enter correct SRN / Staff ID</li>
+      <li>Complete facial capture step</li>
+    </ul>
+
+    <button class="btn blue" onclick="closeLearn()">Got It</button>
+  </div>
+</div>
+
+<!-- ================= SCRIPT ================= -->
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!email || !password) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  if (password.length < 4) {
+    alert("Password must be at least 4 characters");
+    return;
+  }
+
+  const savedUser = JSON.parse(localStorage.getItem("geovisionUser"));
+
+  if (savedUser && email === savedUser.email && password === savedUser.password) {
+    alert("Login Successful ✅");
+    window.location.href = "profile.html";
+  } else if (!savedUser) {
+    alert("No registered user found. Redirecting...");
+    window.location.href = "profile.html";
+  } else {
+    alert("Invalid credentials ❌");
+  }
+});
+
+/* ===== MODAL FUNCTIONS ===== */
+
+function openForgot() {
+  document.getElementById("forgotModal").style.display = "flex";
+}
+
+function closeForgot() {
+  document.getElementById("forgotModal").style.display = "none";
+}
+
+function openLearn() {
+  document.getElementById("learnModal").style.display = "flex";
+}
+
+function closeLearn() {
+  document.getElementById("learnModal").style.display = "none";
+}
+
+function sendResetLink() {
+  const email = document.getElementById("resetEmail").value;
+
+  if (!email) {
+    alert("Enter email first");
+    return;
+  }
+
+  alert("Reset link sent to " + email + " ✅");
+  closeForgot();
+}
+</script>
+
+</body>
+</html>
