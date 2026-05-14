@@ -18,15 +18,13 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final isDark = prefs.getBool('gv_theme_dark') ?? true;
 
-  final auth = AuthService();
+  final apiService = ApiService();
+  final auth = AuthService(apiService);
   await auth.restoreSession();
 
-  final apiService = ApiService();
   final wsService  = WebSocketService();
 
-  // Inject token if session was already restored
   if (auth.token != null) {
-    apiService.setToken(auth.token);
     wsService.setToken(auth.token!);
   }
 

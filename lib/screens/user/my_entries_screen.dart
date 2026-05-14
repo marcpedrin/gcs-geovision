@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
+import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
-import '../../services/db_service.dart';
 import '../../models/entry_log.dart';
 import '../../widgets/common_widgets.dart';
 import 'profile_screen.dart';
@@ -15,7 +15,6 @@ class MyEntriesScreen extends StatefulWidget {
 }
 
 class _MyEntriesScreenState extends State<MyEntriesScreen> {
-  final _db = DbService();
   List<EntryLog> _all = [];
   String _filter = 'all';
   bool _loading  = true;
@@ -31,11 +30,14 @@ class _MyEntriesScreenState extends State<MyEntriesScreen> {
     final user = auth.currentUser;
     if (user == null) return;
     try {
-      final userLogs = await _db.getEntryLogsByUser(user.email);
-      final allLogs  = await _db.getAllEntryLogs();
-      final display  = userLogs.isNotEmpty ? userLogs : allLogs;
-      display.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      if (mounted) setState(() { _all = display; _loading = false; });
+      final api = context.read<ApiService>();
+      final raw = await api.getEntryLogs(userId: user.email);
+      final entries = raw
+          .cast<Map<String, dynamic>>()
+          .map(EntryLog.fromMap)
+          .toList();
+      entries.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      if (mounted) setState(() { _all = entries; _loading = false; });
     } catch (e) {
       if (mounted) setState(() => _loading = false);
     }

@@ -13,17 +13,19 @@ class ApiException implements Exception {
 }
 
 class ApiService {
-  // TODO: Replace with your real backend URL
-  // Android emulator: 'http://10.0.2.2:8000/api'
-  // iOS sim / web:    'http://localhost:8000/api'
-  static const String baseUrl = 'https://your-backend.com/api';
+  // FastAPI backend URL for local and emulator development.
+  // - Desktop / web: http://127.0.0.1:8000/api
+  // - Android emulator: http://10.0.2.2:8000/api
+  static const String baseUrl = 'http://127.0.0.1:8000/api';
 
   static const Duration _timeout = Duration(seconds: 15);
 
   final http.Client _client = http.Client();
   String? _token;
 
-  void setToken(String? token) => _token = token;
+  void setToken(String? token) {
+    _token = token;
+  }
 
   // ── Generic HTTP ──────────────────────────────────────────────────────────
 
@@ -87,9 +89,33 @@ class ApiService {
     });
   }
 
-  Future<String> login(String username, String password) async {
+  Future<Map<String, dynamic>> register(Map<String, dynamic> body) async {
+    return post('/auth/register', body);
+  }
+
+  Future<Map<String, dynamic>> getProfile() async {
+    return get('/users/me');
+  }
+
+  Future<Map<String, dynamic>> updateProfile(
+      Map<String, dynamic> body) async {
+    return put('/users/me', body);
+  }
+
+  Future<List<dynamic>> getEntryLogs({String? userId}) async {
+    final query = userId != null ? '?user_id=${Uri.encodeQueryComponent(userId)}' : '';
+    final data = await get('/entry_logs$query');
+    return data['logs'] ?? [];
+  }
+
+  Future<List<dynamic>> getVisitors() async {
+    final data = await get('/visitors');
+    return data['visitors'] ?? [];
+  }
+
+  Future<Map<String, dynamic>> login(String username, String password) async {
     final data = await post('/auth/login', {
-      'username': username,
+      'email': username,
       'password': password,
     });
     final token = data['token'] as String?;
@@ -97,7 +123,7 @@ class ApiService {
       throw const ApiException(200, 'Token missing in response');
     }
     _token = token;
-    return token;
+    return data;
   }
 
   Future<void> logout() async {

@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
+import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
-import '../../services/db_service.dart';
 import '../../models/entry_log.dart';
 import '../../widgets/common_widgets.dart';
 
@@ -135,7 +135,6 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  final _db = DbService();
   bool _editOpen = false;
   List<EntryLog> _logs = [];
   int _entryCount = 0, _daysSince = 0;
@@ -160,16 +159,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final auth = context.read<AuthService>();
     final user = auth.currentUser;
     if (user == null) return;
+
     try {
-      final userLogs = await _db.getEntryLogsByUser(user.email);
-      final allLogs  = await _db.getAllEntryLogs();
-      final display  = userLogs.isNotEmpty ? userLogs : allLogs.take(5).toList();
-      final days     = user.joinedAt != null
-          ? DateTime.now().difference(user.joinedAt!).inDays : 0;
+      final api = context.read<ApiService>();
+      final userLogsRaw = await api.getEntryLogs(userId: user.email);
+      final userLogs = userLogsRaw
+          .cast<Map<String, dynamic>>()
+          .map(EntryLog.fromMap)
+          .toList();
+
+      final display = userLogs.isNotEmpty
+          ? userLogs
+          : (await api.getEntryLogs()).cast<Map<String, dynamic>>().map(EntryLog.fromMap).take(5).toList();
+      final days = user.joinedAt != null
+          ? DateTime.now().difference(user.joinedAt!).inDays
+          : 0;
       if (mounted) setState(() {
-        _logs = display; _entryCount = display.length; _daysSince = days;
+        _logs = display;
+        _entryCount = display.length;
+        _daysSince = days;
       });
-    } catch (e) { debugPrint('$e'); }
+    } catch (e) {
+      debugPrint('$e');
+    }
   }
 
   void _openEdit() {
