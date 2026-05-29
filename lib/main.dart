@@ -4,16 +4,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'theme/app_theme.dart';
 import 'services/auth_service.dart';
-import 'services/db_service.dart';
+import 'services/data_service.dart';
 import 'services/api_service.dart';
 import 'services/websocket_service.dart';
 import 'router/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  final db = DbService();
-  await db.seedDefaults();
 
   final prefs = await SharedPreferences.getInstance();
   final isDark = prefs.getBool('gv_theme_dark') ?? true;
@@ -22,6 +19,7 @@ Future<void> main() async {
   final auth = AuthService(apiService);
   await auth.restoreSession();
 
+  final dataService = DataService(apiService);
   final wsService  = WebSocketService();
 
   if (auth.token != null) {
@@ -39,6 +37,7 @@ Future<void> main() async {
           create: (_) => apiService,
           dispose: (_, s) => s.dispose(),
         ),
+        ChangeNotifierProvider<DataService>.value(value: dataService),
         ChangeNotifierProvider<WebSocketService>(
           create: (_) => wsService,
           dispose: (_, s) => s.dispose(),

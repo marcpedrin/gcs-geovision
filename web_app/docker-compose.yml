@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # FastAPI Backend
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: geovision-api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://geovision:geovision_pass@db:5432/geovision_db
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      DEBUG: "False"
+    depends_on:
+      - db
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - geovision-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: geovision-db
+    environment:
+      POSTGRES_USER: geovision
+      POSTGRES_PASSWORD: geovision_pass
+      POSTGRES_DB: geovision_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - geovision-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geovision"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pgAdmin (Database Management)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: geovision-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@geovision.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - geovision-network
+
+volumes:
+  postgres_data:
+
+networks:
+  geovision-network:
+    driver: bridge
